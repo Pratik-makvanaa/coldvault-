@@ -1,24 +1,22 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   }
 });
-export const addChamber = (data) => {
-  return axios.post("http://localhost:8080/api/chambers", data);
-};
-
 
 // ─── Chambers ────────────────────────────
+export const addChamber = (data) => api.post('/chambers', data);
 export const getAllChambers = (adminId) => api.get(`/chambers?adminId=${adminId}`);
 export const createChamber = (data) => api.post('/chambers', data);
 export const updateChamber  = (id, data) => api.put(`/chambers/${id}`, data);
 export const deleteChamber  = (id) => api.delete(`/chambers/${id}`);
 
 // ─── Customers ───────────────────────────
-
 export const getAllCustomers = () => api.get('/customers');
 export const getCustomersByAdmin = (adminId) => api.get(`/customers?adminId=${adminId}`);
 export const createCustomer = (data) => api.post('/customers', data);
@@ -34,6 +32,5 @@ export const deleteBooking  = (id) => api.delete(`/bookings/${id}`);
 // ─── Auth ────────────────────────────────
 export const signup = (data) => api.post('/auth/signup', data);
 export const login = (data) => api.post('/auth/login', data);
-
 
 export default api;
