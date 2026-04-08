@@ -6,7 +6,7 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
     { id: "chambers", label: "Chambers", icon: Icons.warehouse },
     // { id: "monitoring", label: "Monitoring", icon: Icons.thermometer },
     // { id: "inventory", label: "Inventory", icon: Icons.package },
-    { id: "alerts", label: "Alerts", icon: Icons.alert, badge: 3 },
+    { id: "alerts", label: "Alerts", icon: Icons.alert },
     { id: "reports", label: "Reports", icon: Icons.chart },
     { id: "users", label: "Users", icon: Icons.users },
   ];

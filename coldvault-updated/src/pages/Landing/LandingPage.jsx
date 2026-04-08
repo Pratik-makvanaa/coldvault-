@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Icons } from "../../components/icons/index.jsx";
 import { HeroVisual } from "./components/HeroVisual.jsx";
 
-export function LandingPage({ onEnterDashboard }) {
+export function LandingPage({ onEnterDashboard,setView }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export function LandingPage({ onEnterDashboard }) {
 
   const stats = [
     { value: "100%", label: "Active Chamber Tracking" },
-    { value: "Real-time", label: "Temperature + Capacity" },
+    // { value: "Real-time", label: "Temperature + Capacity" },
     { value: "500+", label: "Managed Items" },
     { value: "24/7", label: "Billing & Reporting" },
   ];
@@ -137,7 +137,7 @@ export function LandingPage({ onEnterDashboard }) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          {["Platform", "Solutions", "Pricing", "Docs"].map((item) => (
+          {/* {["Platform", "Solutions", "Pricing", "Docs"].map((item) => (
             <span
               key={item}
               style={{
@@ -153,7 +153,7 @@ export function LandingPage({ onEnterDashboard }) {
             >
               {item}
             </span>
-          ))}
+          ))} */}
           <button
             className="btn-primary"
             onClick={onEnterDashboard}
@@ -185,20 +185,20 @@ export function LandingPage({ onEnterDashboard }) {
           <div style={{ flex: 1 }}>
             <div
               className="animate-fadeInUp stagger-1"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "6px 16px",
-                borderRadius: 100,
-                background: "rgba(37,99,235,0.08)",
-                border: "1px solid rgba(37,99,235,0.18)",
-                marginBottom: 28,
-                color: "var(--accent-ice)",
-                fontSize: 15,
-                fontFamily: "var(--font-display)",
-                letterSpacing: "0.1em",
-              }}
+              // style={{
+              //   display: "inline-flex",
+              //   alignItems: "center",
+              //   gap: 8,
+              //   padding: "6px 16px",
+              //   borderRadius: 100,
+              //   background: "rgba(37,99,235,0.08)",
+              //   border: "1px solid rgba(37,99,235,0.18)",
+              //   marginBottom: 28,
+              //   color: "var(--accent-ice)",
+              //   fontSize: 15,
+              //   fontFamily: "var(--font-display)",
+              //   letterSpacing: "0.1em",
+              // }}
             >
               <div
                 style={{
@@ -222,9 +222,9 @@ export function LandingPage({ onEnterDashboard }) {
                 marginBottom: 24,
               }}
             >
-              <span style={{ color: "var(--text-primary)" }}>Cold </span>
-              <br />
-              <span className="shimmer-text">Storage</span>
+              <span style={{ color: "var(--text-primary)" }}><span className="shimmer-text">Coldvault</span></span>
+              
+              
             </h1>
 
             <p
@@ -261,7 +261,7 @@ export function LandingPage({ onEnterDashboard }) {
                 Launch Dashboard
                 <Icons.arrowRight />
               </button>
-              <button
+              {/* <button
                 className="btn-ghost"
                 style={{
                   padding: "16px 36px",
@@ -275,7 +275,7 @@ export function LandingPage({ onEnterDashboard }) {
               >
                 <Icons.eye />
                 Live Demo
-              </button>
+              </button> */}
             </div>
 
             {/* Stat row */}
@@ -396,7 +396,7 @@ export function LandingPage({ onEnterDashboard }) {
       </section>
 
       {/* CTA Banner */}
-      <section style={{ position: "relative", zIndex: 1, padding: "60px 60px 100px", maxWidth: 1300, margin: "0 auto" }}>
+      {/* <section style={{ position: "relative", zIndex: 1, padding: "60px 60px 100px", maxWidth: 1300, margin: "0 auto" }}>
         <div
           style={{
             background: "linear-gradient(135deg, rgba(14,165,201,0.15), rgba(77,217,240,0.05))",
@@ -449,7 +449,63 @@ export function LandingPage({ onEnterDashboard }) {
             <Icons.arrowRight />
           </button>
         </div>
-      </section>
+      </section> */}
+      {/* Footer */}
+<footer
+  style={{
+    marginTop: "80px",
+    padding: "40px 60px",
+    borderTop: "1px solid var(--border-subtle)",
+    background: "rgba(255,255,255,0.9)",
+    textAlign: "center",
+  }}
+>
+  <div style={{ marginBottom: "16px" }}>
+    <span
+      style={{
+        fontFamily: "var(--font-display)",
+        fontSize: 35,
+        fontWeight: 700,
+        color: "var(--text-primary)",
+      }}
+    >
+      COLD<span style={{ color: "var(--accent-ice)" }}>VAULT</span>
+    </span>
+  </div>
+
+  <p
+    style={{
+      fontSize: 20,
+      color: "var(--text-muted)",
+      marginBottom: "16px",
+    }}
+  >
+    Smart cold storage management system for chambers, inventory & billing.
+  </p>
+
+  <div style={{ display: "flex", justifyContent: "center", gap: "55px", marginBottom: "16px" }}>
+  {["Privacy", "Terms", "Support"].map((item) => (
+  <span
+    key={item}
+    style={{
+      fontSize: 14,
+      color: "var(--text-secondary)",
+      cursor: "pointer",
+    }}
+    onClick={() => {
+      console.log("Clicked:", item);   // ✅ DEBUG
+      setView(item.toLowerCase());
+    }}
+  >
+    {item}
+  </span>
+))}
+  </div>
+
+  <p style={{ fontSize: 25, color: "var(--text-muted)" }}>
+    © {new Date().getFullYear()} ColdVault. All rights reserved.
+  </p>
+</footer>
     </div>
   );
 }
