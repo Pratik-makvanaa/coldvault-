@@ -181,6 +181,8 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
   const [step, setStep] = useState("view"); // "view" | "password" | "form" | "deletePassword"
   const [customer, setCustomer] = useState("");
   const [farmerId, setFarmerId] = useState("");
+  const [farmerPhone, setFarmerPhone] = useState("");
+  const [farmerAddress, setFarmerAddress] = useState("");
   const [slots, setSlots] = useState("1");
   const [days, setDays] = useState("7");
   const today = formatISODate(new Date());
@@ -209,9 +211,12 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
       alert(`Farmer ID "${farmerId.trim()}" already has a booking in this chamber. Each farmer must have a unique ID per chamber.`);
       return;
     }
+    if (!farmerPhone.trim()) { alert("Farmer phone number is required"); return; }
+    if (!/^\d{10}$/.test(farmerPhone.trim())) { alert("Please enter a valid 10-digit phone number"); return; }
+    if (!farmerAddress.trim()) { alert("Farmer address is required"); return; }
     if (availableSlots <= 0) { alert("No slots available in this chamber"); return; }
-    onCreateBooking(chamber.id, customer.trim(), farmerId.trim(), slotsNum, daysNum, rentRateNum, price, startDate, endDate);
-    setCustomer(""); setFarmerId(""); setSlots("1"); setDays("7");
+    onCreateBooking(chamber.id, customer.trim(), farmerId.trim(), slotsNum, daysNum, rentRateNum, price, startDate, endDate, farmerPhone.trim(), farmerAddress.trim());
+    setCustomer(""); setFarmerId(""); setFarmerPhone(""); setFarmerAddress(""); setSlots("1"); setDays("7");
     const resetStart = formatISODate(new Date());
     setStartDate(resetStart);
     setEndDate(addDays(resetStart, 6));
@@ -272,7 +277,7 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  {["Farmer ID", "Customer", "Slots", "Days", "From", "To", "Rate (₹)", "Total (₹)", "Bill", ""].map((h) => (
+                  {["Farmer ID", "Customer", "Phone", "Address", "Slots", "Days", "From", "To", "Rate (₹)", "Total (₹)", "Bill", ""].map((h) => (
                     <th key={h} style={{ textAlign: "left", borderBottom: "1px solid var(--border-subtle)", padding: "6px", fontSize: 13 }}>{h}</th>
                   ))}
                 </tr>
@@ -282,6 +287,8 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
                   <tr key={b.id}>
                     <td style={{ padding: "6px", fontSize: 13, color: "var(--accent-ice)", fontWeight: 600 }}>{b.farmerId || "-"}</td>
                     <td style={{ padding: "6px" }}>{b.customer}</td>
+                    <td style={{ padding: "6px", fontSize: 12 }}>{b.farmerPhone || "-"}</td>
+                    <td style={{ padding: "6px", fontSize: 12, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.farmerAddress || "-"}</td>
                     <td style={{ padding: "6px", textAlign: "right" }}>{b.slots}</td>
                     <td style={{ padding: "6px", textAlign: "right" }}>{b.days}</td>
                     <td style={{ padding: "6px", textAlign: "right" }}>{b.startDate || "-"}</td>
@@ -339,6 +346,35 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
               <div>
                 <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>Customer Name <span style={{ color: "#ef4444" }}>*</span></label>
                 <input placeholder="Customer name" value={customer} onChange={(e) => setCustomer(e.target.value)} />
+              </div>
+            </div>
+
+            {/* Farmer Phone + Address */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
+                  Farmer Phone <span style={{ color: "#ef4444" }}>*</span>
+                </label>
+                <input
+                  type="tel"
+                  placeholder="10-digit mobile number"
+                  value={farmerPhone}
+                  onChange={(e) => setFarmerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  style={{ borderColor: farmerPhone.length > 0 && farmerPhone.length !== 10 ? "#ef4444" : undefined }}
+                />
+                {farmerPhone.length > 0 && farmerPhone.length !== 10 && (
+                  <div style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>⚠ Enter a valid 10-digit number</div>
+                )}
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
+                  Farmer Address <span style={{ color: "#ef4444" }}>*</span>
+                </label>
+                <input
+                  placeholder="Village / Town, District, State"
+                  value={farmerAddress}
+                  onChange={(e) => setFarmerAddress(e.target.value)}
+                />
               </div>
             </div>
 
@@ -618,7 +654,7 @@ const handleDeleteChamber = async (id) => {
   const handleCloseChamberDetail = () => setSelectedChamberId(null);
 
 
-  const handleCreateBooking = async (chamberId, customer, farmerId, slots, days, rentRate, totalPrice, startDate, endDate) => {
+  const handleCreateBooking = async (chamberId, customer, farmerId, slots, days, rentRate, totalPrice, startDate, endDate, farmerPhone = "", farmerAddress = "") => {
     try {
       // Auto-add customer if not exists
       const exists = customers.find(c => c.name.toLowerCase() === customer.toLowerCase());
@@ -633,6 +669,8 @@ const handleDeleteChamber = async (id) => {
         chamber: { id: chamberId },
         customer,
         farmerId,
+        farmerPhone,
+        farmerAddress,
         slots,
         days,
         rentRate,

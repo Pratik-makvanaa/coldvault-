@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Icons } from "../../components/icons/index.jsx";
 import { HeroVisual } from "./components/HeroVisual.jsx";
 
-export function LandingPage({ onEnterDashboard,setView }) {
+export function LandingPage({ onEnterDashboard }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export function LandingPage({ onEnterDashboard,setView }) {
 
   const stats = [
     { value: "100%", label: "Active Chamber Tracking" },
-    // { value: "Real-time", label: "Temperature + Capacity" },
+    { value: "Real-time", label: "Temperature + Capacity" },
     { value: "500+", label: "Managed Items" },
     { value: "24/7", label: "Billing & Reporting" },
   ];
@@ -137,7 +137,7 @@ export function LandingPage({ onEnterDashboard,setView }) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          {/* {["Platform", "Solutions", "Pricing", "Docs"].map((item) => (
+          {["Platform", "Solutions", "Pricing", "Docs", "Contact"].map((item) => (
             <span
               key={item}
               style={{
@@ -153,7 +153,7 @@ export function LandingPage({ onEnterDashboard,setView }) {
             >
               {item}
             </span>
-          ))} */}
+          ))}
           <button
             className="btn-primary"
             onClick={onEnterDashboard}
@@ -185,20 +185,20 @@ export function LandingPage({ onEnterDashboard,setView }) {
           <div style={{ flex: 1 }}>
             <div
               className="animate-fadeInUp stagger-1"
-              // style={{
-              //   display: "inline-flex",
-              //   alignItems: "center",
-              //   gap: 8,
-              //   padding: "6px 16px",
-              //   borderRadius: 100,
-              //   background: "rgba(37,99,235,0.08)",
-              //   border: "1px solid rgba(37,99,235,0.18)",
-              //   marginBottom: 28,
-              //   color: "var(--accent-ice)",
-              //   fontSize: 15,
-              //   fontFamily: "var(--font-display)",
-              //   letterSpacing: "0.1em",
-              // }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 16px",
+                borderRadius: 100,
+                background: "rgba(37,99,235,0.08)",
+                border: "1px solid rgba(37,99,235,0.18)",
+                marginBottom: 28,
+                color: "var(--accent-ice)",
+                fontSize: 15,
+                fontFamily: "var(--font-display)",
+                letterSpacing: "0.1em",
+              }}
             >
               <div
                 style={{
@@ -222,9 +222,9 @@ export function LandingPage({ onEnterDashboard,setView }) {
                 marginBottom: 24,
               }}
             >
-              <span style={{ color: "var(--text-primary)" }}><span className="shimmer-text">Coldvault</span></span>
-              
-              
+              <span style={{ color: "var(--text-primary)" }}>Cold </span>
+              <br />
+              <span className="shimmer-text">Storage</span>
             </h1>
 
             <p
@@ -261,7 +261,7 @@ export function LandingPage({ onEnterDashboard,setView }) {
                 Launch Dashboard
                 <Icons.arrowRight />
               </button>
-              {/* <button
+              <button
                 className="btn-ghost"
                 style={{
                   padding: "16px 36px",
@@ -275,7 +275,7 @@ export function LandingPage({ onEnterDashboard,setView }) {
               >
                 <Icons.eye />
                 Live Demo
-              </button> */}
+              </button>
             </div>
 
             {/* Stat row */}
@@ -395,8 +395,84 @@ export function LandingPage({ onEnterDashboard,setView }) {
         </div>
       </section>
 
+
+      {/* Contact Us Section */}
+      <section style={{ position: "relative", zIndex: 1, padding: "0 60px 80px", maxWidth: 1300, margin: "0 auto" }}>
+        <div
+          style={{
+            background: "rgba(8,18,36,0.7)",
+            border: "1px solid rgba(77,217,240,0.18)",
+            borderRadius: 24,
+            padding: "56px 80px",
+            backdropFilter: "blur(20px)",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Decorative orb */}
+          <div style={{
+            position: "absolute", left: -60, bottom: -60,
+            width: 260, height: 260,
+            background: "radial-gradient(circle, rgba(77,217,240,0.09), transparent 70%)",
+            borderRadius: "50%", pointerEvents: "none",
+          }} />
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 40, position: "relative" }}>
+            <div>
+              <div style={{ fontSize: 12, letterSpacing: "0.14em", color: "var(--accent-ice)", fontWeight: 600, marginBottom: 10, textTransform: "uppercase" }}>
+                📞 Contact Us
+              </div>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10, lineHeight: 1.2 }}>
+                We're here to help
+              </h2>
+              <p style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 380, lineHeight: 1.65 }}>
+                Reach out to our team for support, onboarding, or any queries about your cold storage operations.
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, minWidth: 340 }}>
+              {[
+                { name: "Sales & Onboarding", number: "9301080126" },
+                { name: "Technical Support",  number: "7247637104" },
+                { name: "Operations",         number: "9039291624" },
+                { name: "General Enquiry",    number: "6264553403" },
+              ].map(({ name, number }) => (
+                <a
+                  key={number}
+                  href={`tel:+91${number}`}
+                  style={{
+                    display: "flex", flexDirection: "column", gap: 4,
+                    background: "rgba(77,217,240,0.06)",
+                    border: "1px solid rgba(77,217,240,0.18)",
+                    borderRadius: 14, padding: "16px 20px",
+                    textDecoration: "none",
+                    transition: "all 0.2s",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = "rgba(77,217,240,0.13)";
+                    e.currentTarget.style.borderColor = "rgba(77,217,240,0.45)";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = "rgba(77,217,240,0.06)";
+                    e.currentTarget.style.borderColor = "rgba(77,217,240,0.18)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{name}</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: "var(--accent-ice)", fontFamily: "var(--font-display)", letterSpacing: "0.04em" }}>
+                    📱 {number}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Banner */}
-      {/* <section style={{ position: "relative", zIndex: 1, padding: "60px 60px 100px", maxWidth: 1300, margin: "0 auto" }}>
+      <section style={{ position: "relative", zIndex: 1, padding: "60px 60px 100px", maxWidth: 1300, margin: "0 auto" }}>
         <div
           style={{
             background: "linear-gradient(135deg, rgba(14,165,201,0.15), rgba(77,217,240,0.05))",
@@ -449,63 +525,7 @@ export function LandingPage({ onEnterDashboard,setView }) {
             <Icons.arrowRight />
           </button>
         </div>
-      </section> */}
-      {/* Footer */}
-<footer
-  style={{
-    marginTop: "80px",
-    padding: "40px 60px",
-    borderTop: "1px solid var(--border-subtle)",
-    background: "rgba(255,255,255,0.9)",
-    textAlign: "center",
-  }}
->
-  <div style={{ marginBottom: "16px" }}>
-    <span
-      style={{
-        fontFamily: "var(--font-display)",
-        fontSize: 35,
-        fontWeight: 700,
-        color: "var(--text-primary)",
-      }}
-    >
-      COLD<span style={{ color: "var(--accent-ice)" }}>VAULT</span>
-    </span>
-  </div>
-
-  <p
-    style={{
-      fontSize: 20,
-      color: "var(--text-muted)",
-      marginBottom: "16px",
-    }}
-  >
-    Smart cold storage management system for chambers, inventory & billing.
-  </p>
-
-  <div style={{ display: "flex", justifyContent: "center", gap: "55px", marginBottom: "16px" }}>
-  {["Privacy", "Terms", "Support"].map((item) => (
-  <span
-    key={item}
-    style={{
-      fontSize: 14,
-      color: "var(--text-secondary)",
-      cursor: "pointer",
-    }}
-    onClick={() => {
-      console.log("Clicked:", item);   // ✅ DEBUG
-      setView(item.toLowerCase());
-    }}
-  >
-    {item}
-  </span>
-))}
-  </div>
-
-  <p style={{ fontSize: 25, color: "var(--text-muted)" }}>
-    © {new Date().getFullYear()} ColdVault. All rights reserved.
-  </p>
-</footer>
+      </section>
     </div>
   );
 }

@@ -5,6 +5,7 @@ export function SignupPage({ onSignup, onBack }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [businessName, setBusinessName] = useState("");
+  const [totalCapacity, setTotalCapacity] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
@@ -13,12 +14,15 @@ export function SignupPage({ onSignup, onBack }) {
     if (!username.trim() || !password.trim() || !businessName.trim()) {
       setError("All fields are required"); return;
     }
+    if (!totalCapacity || isNaN(Number(totalCapacity)) || Number(totalCapacity) <= 0) {
+      setError("Please enter a valid total capacity"); return;
+    }
     if (password.length < 6) {
       setError("Password must be at least 6 characters"); return;
     }
     setLoading(true);
     try {
-      await onSignup({ username: username.trim(), password, businessName: businessName.trim() });
+      await onSignup({ username: username.trim(), password, businessName: businessName.trim(), totalCapacity: Number(totalCapacity) });
     } catch (err) {
       setError(err.response?.data?.error || "Signup failed");
     } finally {
@@ -56,6 +60,25 @@ export function SignupPage({ onSignup, onBack }) {
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 8 }}>Business Name</label>
           <input style={inp} placeholder="e.g. Sharma Cold Storage" value={businessName} onChange={e => { setBusinessName(e.target.value); setError(""); }} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 8 }}>
+            Total Capacity of Cold Storage
+            <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 6 }}>(in metric tons / slots)</span>
+          </label>
+          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <input
+              style={{ ...inp, paddingRight: 44 }}
+              type="number"
+              min="1"
+              placeholder="e.g. 500"
+              value={totalCapacity}
+              onChange={e => { setTotalCapacity(e.target.value); setError(""); }}
+              onKeyDown={e => e.key === "Enter" && handleSubmit()}
+            />
+            <span style={{ position: "absolute", right: 14, color: "var(--text-muted)", fontSize: 12, pointerEvents: "none" }}>MT</span>
+          </div>
         </div>
 
         <div style={{ marginBottom: 16 }}>

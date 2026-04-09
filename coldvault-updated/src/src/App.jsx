@@ -4,9 +4,6 @@ import { Dashboard } from "./pages/Dashboard/Dashboard.jsx";
 import { LoginPage } from "./pages/Login/LoginPage.jsx";
 import { SignupPage } from "./pages/Login/SignupPage.jsx";
 import { login, signup } from "./api/api.js";
-import PrivacyPage from "./pages/Landing/PrivacyPage.jsx";
-import TermsPage from "./pages/Landing/TermsPage.jsx";
-import SupportPage from "./pages/Landing/SupportPage.jsx";
 
 export default function App() {
   const [view, setView] = useState("landing");
@@ -40,7 +37,7 @@ export default function App() {
     setView("landing");
   };
 
-  if (view === "landing") return <LandingPage onEnterDashboard={() => setView("login")} setView={setView} />;
+  if (view === "landing") return <LandingPage onEnterDashboard={() => setView("login")} />;
   if (view === "login") return (
     <LoginPage
       onLogin={handleLogin}
@@ -56,15 +53,6 @@ export default function App() {
       onBack={() => setView("login")}
     />
   );
-
-if (view === "privacy") 
-  return <PrivacyPage onBack={() => setView("landing")} />;
-
-if (view === "terms") 
-  return <TermsPage onBack={() => setView("landing")} />;
-
-if (view === "support") 
-  return <SupportPage onBack={() => setView("landing")} />;
 
   return <Dashboard admin={currentAdmin} onBack={handleLogout} />;
 }

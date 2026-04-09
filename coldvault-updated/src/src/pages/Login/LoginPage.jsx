@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Icons } from "../../components/icons/index.jsx";
-import { GoogleLogin } from "@react-oauth/google";
 
 export function LoginPage({ onLogin, onBack, onGoSignup, error, setError }) {
   const [username, setUsername] = useState("");
@@ -293,21 +292,6 @@ export function LoginPage({ onLogin, onBack, onGoSignup, error, setError }) {
             "Sign In →"
           )}
         </button>
-        <div style={{ textAlign: "center", margin: "18px 0", color: "var(--text-muted)" }}>
-  ─── OR ───
-</div>
-
-{/* 🔥 Google Login */}
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <GoogleLogin
-    onSuccess={(res) => {
-      console.log("Google Token:", res.credential);
-
-      // 🔥 backend call yaha karega next step me
-    }}
-    onError={() => console.log("Google Login Failed")}
-  />
-</div>
 
         <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--text-muted)" }}>
   New user?{" "}
