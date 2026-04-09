@@ -12,7 +12,7 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ✅ customer is now simple string (NO @ManyToOne)
+
     private String customer;
     private String farmerId;
 
@@ -29,7 +29,7 @@ public class Booking {
     private LocalDate endDate;
     private String createdAt;
 
-    // ✅ GETTERS
+
 
     public Long getId() { return id; }
     public String getCustomer() { return customer; }
@@ -43,7 +43,7 @@ public class Booking {
     public LocalDate getEndDate() { return endDate; }
     public String getCreatedAt() { return createdAt; }
 
-    // ✅ SETTERS
+
 
     public void setId(Long id) { this.id = id; }
     public void setCustomer(String customer) { this.customer = customer; }

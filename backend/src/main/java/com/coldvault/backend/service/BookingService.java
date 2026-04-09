@@ -26,12 +26,12 @@ public class BookingService {
     @Transactional
     public Booking createBooking(Booking booking) {
 
-        // ✅ set createdAt if missing
+
         if (booking.getCreatedAt() == null || booking.getCreatedAt().isEmpty()) {
             booking.setCreatedAt(java.time.LocalDateTime.now().toString());
         }
 
-        // ✅ calculate totalPrice if not sent
+
         if (booking.getTotalPrice() == 0 && booking.getRentRate() > 0) {
             booking.setTotalPrice(
                     booking.getSlots() * booking.getDays() * booking.getRentRate()
@@ -40,7 +40,7 @@ public class BookingService {
 
         Booking saved = bookingRepository.save(booking);
 
-        // ✅ update chamber availableSlots
+
         if (saved.getChamber() != null) {
             Chamber chamber = chamberRepository
                     .findById(saved.getChamber().getId())
@@ -64,7 +64,7 @@ public class BookingService {
 
         if (booking != null) {
 
-            // ✅ restore slots
+
             if (booking.getChamber() != null) {
                 Chamber chamber = chamberRepository
                         .findById(booking.getChamber().getId())
