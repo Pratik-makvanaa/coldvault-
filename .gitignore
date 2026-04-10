@@ -1,0 +1,21 @@
+.env
+*.env
+!.env.example
+!.env.sample
+
+# Node / frontend
+**/node_modules/
+**/.vite/
+**/dist/
+
+# Java / Maven
+**/target/
+**/*.class
+
+# IDE/editor
+**/.idea/
+**/.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

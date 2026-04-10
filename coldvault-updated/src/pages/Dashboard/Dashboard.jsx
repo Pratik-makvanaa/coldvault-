@@ -5,38 +5,26 @@ import { ChamberGrid } from "./components/ChamberGrid.jsx";
 import { Sparkline } from "./components/Sparkline.jsx";
 import { Icons } from "../../components/icons/index.jsx";
 
-import { 
-  getAllChambers, 
-  addChamber, 
+import {
+  getAllChambers,
+  addChamber,
   deleteChamber,
-  createBooking, 
+  createBooking,
   deleteBooking,
+  checkoutBooking,
   getCustomersByAdmin,
   createCustomer
 } from "../../api/api.js";
 
-// ── Admin password (single source of truth) ──────────────────────────────────
-const ADMIN_PASSWORD = "coldvault2024";
-
-// const initialChambers = [
-//   { id: "C-01", name: "Potato Storage", totalSlots: 120, slotSize: 1, pricePerSlotPerDay: 18, bookings: [{ id: "b1", farmerId: "F-1001", customer: "Aarav Traders", slots: 30, days: 10, rentRate: 18, totalPrice: 5400, createdAt: new Date().toISOString() }] },
-//   { id: "C-02", name: "Onion Storage", totalSlots: 100, slotSize: 1, pricePerSlotPerDay: 20, bookings: [{ id: "b2", farmerId: "F-1002", customer: "Meera Agro", slots: 18, days: 7, rentRate: 20, totalPrice: 2520, createdAt: new Date().toISOString() }] },
-//   { id: "C-03", name: "Tomato (Short-term)", totalSlots: 80, slotSize: 1, pricePerSlotPerDay: 24, bookings: [] },
-//   { id: "C-04", name: "Chilli Storage", totalSlots: 60, slotSize: 1, pricePerSlotPerDay: 22, bookings: [{ id: "b3", farmerId: "F-1003", customer: "Kisan Group", slots: 12, days: 15, rentRate: 22, totalPrice: 3960, createdAt: new Date().toISOString() }] },
-//   { id: "C-05", name: "Apple Cold Storage", totalSlots: 90, slotSize: 1, pricePerSlotPerDay: 28, bookings: [] },
-//   { id: "C-06", name: "Milk & Dairy", totalSlots: 70, slotSize: 1, pricePerSlotPerDay: 30, bookings: [{ id: "b4", farmerId: "F-1004", customer: "Shree Dairy", slots: 20, days: 5, rentRate: 30, totalPrice: 3000, createdAt: new Date().toISOString() }] },
-//   { id: "C-07", name: "Frozen Items", totalSlots: 50, slotSize: 1, pricePerSlotPerDay: 35, bookings: [] },
-//   { id: "C-08", name: "General Purpose", totalSlots: 110, slotSize: 1, pricePerSlotPerDay: 16, bookings: [] },
-// ];
-
-// ── Password Verify Modal ─────────────────────────────────────────────────────
-function PasswordModal({ title, onConfirm, onClose }) {
+// ── FIX 3: PasswordModal now accepts adminPassword prop ──────────────────────
+// Each admin verifies using THEIR OWN password, not a shared hardcoded one.
+function PasswordModal({ title, onConfirm, onClose, adminPassword }) {
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
   const [show, setShow] = useState(false);
 
   const verify = () => {
-    if (pw === ADMIN_PASSWORD) {
+    if (pw === adminPassword) {
       setErr("");
       onConfirm();
     } else {
@@ -87,9 +75,9 @@ function PasswordModal({ title, onConfirm, onClose }) {
   );
 }
 
-// ── Add Chamber Modal (with password gate) ────────────────────────────────────
-function AddChamberModal({ onClose, onSubmit }) {
-  const [step, setStep] = useState("password"); // "password" | "form"
+// ── Add Chamber Modal ────────────────────────────────────────────────────────
+function AddChamberModal({ onClose, onSubmit, adminPassword }) {
+  const [step, setStep] = useState("password");
   const [id, setId] = useState("");
   const [name, setName] = useState("");
   const [totalSlots, setTotalSlots] = useState("100");
@@ -101,15 +89,13 @@ function AddChamberModal({ onClose, onSubmit }) {
         title="Add Chamber — Verify Identity"
         onConfirm={() => setStep("form")}
         onClose={onClose}
+        adminPassword={adminPassword}
       />
     );
   }
 
   const submit = () => {
-    if (!id.trim() || !name.trim()) {
-      alert("ID and name are required");
-      return;
-    }
+    if (!id.trim() || !name.trim()) { alert("ID and name are required"); return; }
     onSubmit({
       id: id.trim(),
       name: name.trim(),
@@ -140,18 +126,19 @@ function AddChamberModal({ onClose, onSubmit }) {
   );
 }
 
-// ── Delete Chamber (password gated) ──────────────────────────────────────────
-function DeleteChamberModal({ chamberId, onConfirm, onClose }) {
+// ── Delete Chamber Modal ─────────────────────────────────────────────────────
+function DeleteChamberModal({ chamberId, onConfirm, onClose, adminPassword }) {
   return (
     <PasswordModal
       title={`Delete Chamber ${chamberId} — Verify Identity`}
       onConfirm={onConfirm}
       onClose={onClose}
+      adminPassword={adminPassword}
     />
   );
 }
 
-// ── Booking Modal (with Farmer ID + Rent Rate) ────────────────────────────────
+// ── Date Helpers ─────────────────────────────────────────────────────────────
 function formatISODate(dateObj) {
   const d = new Date(dateObj);
   if (Number.isNaN(d.getTime())) return "";
@@ -177,8 +164,129 @@ function diffDaysInclusive(startDate, endDate) {
   return Math.max(1, days + 1);
 }
 
-function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
-  const [step, setStep] = useState("view"); // "view" | "password" | "form" | "deletePassword"
+// ── FIX 2: Checkout Modal — early/late pickup bill recalculation ─────────────
+function CheckoutModal({ booking, onClose, onCheckout, adminPassword }) {
+  const [step, setStep] = useState("password");
+  const [pickupDate, setPickupDate] = useState(formatISODate(new Date()));
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  if (step === "password") {
+    return (
+      <PasswordModal
+        title="Checkout — Verify Identity"
+        onConfirm={() => setStep("form")}
+        onClose={onClose}
+        adminPassword={adminPassword}
+      />
+    );
+  }
+
+  const previewBill = () => {
+    if (!pickupDate) return;
+    const startDate = new Date(booking.startDate);
+    const pickup = new Date(pickupDate);
+    const bookedEnd = new Date(booking.endDate);
+
+    const actualDays = Math.max(1, Math.round((pickup - startDate) / (1000 * 60 * 60 * 24)) + 1);
+    const extraDays = Math.round((pickup - bookedEnd) / (1000 * 60 * 60 * 24));
+    const adjustedTotal = booking.slots * actualDays * booking.rentRate;
+    const refund = booking.totalPrice - adjustedTotal;
+
+    setResult({
+      actualDays,
+      extraDays,
+      adjustedTotal,
+      refund,
+      status: extraDays > 0 ? "LATE" : extraDays < 0 ? "EARLY" : "ON_TIME"
+    });
+  };
+
+  const confirmCheckout = async () => {
+    setLoading(true);
+    try {
+      await onCheckout(booking.id, pickupDate);
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const statusColor = result?.status === "LATE" ? "#ef4444" : result?.status === "EARLY" ? "#10b981" : "#2563eb";
+  const statusLabel = result?.status === "LATE"
+    ? `⚠ LATE by ${result.extraDays} day(s) — Extra charge applies`
+    : result?.status === "EARLY"
+      ? `✓ EARLY by ${Math.abs(result.extraDays)} day(s) — Slots freed immediately`
+      : "✓ ON TIME";
+
+  return (
+    <div className="modal-overlay" style={{ zIndex: 400 }}>
+      <div className="modal-content" style={{ maxWidth: 480 }}>
+        <h3>📦 Checkout — {booking.customer} ({booking.farmerId})</h3>
+        <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+          Booked: {booking.startDate} → {booking.endDate} ({booking.days} days, {booking.slots} slots @ ₹{booking.rentRate}/slot/day)
+          <br />Original Bill: <strong>₹{Number(booking.totalPrice).toLocaleString()}</strong>
+        </div>
+
+        <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>
+          Actual Pickup Date <span style={{ color: "#ef4444" }}>*</span>
+        </label>
+        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <input
+            type="date"
+            value={pickupDate}
+            onChange={(e) => { setPickupDate(e.target.value); setResult(null); }}
+            style={{ flex: 1 }}
+          />
+          <button className="btn-ghost" onClick={previewBill}>Preview Bill</button>
+        </div>
+
+        {result && (
+          <div style={{ background: "rgba(37,99,235,0.06)", border: `1px solid ${statusColor}40`, borderRadius: 12, padding: "14px 18px", marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: statusColor, marginBottom: 10 }}>{statusLabel}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 13 }}>
+              <div><span style={{ color: "var(--text-muted)" }}>Actual Days Used:</span> <strong>{result.actualDays}</strong></div>
+              <div><span style={{ color: "var(--text-muted)" }}>Slots:</span> <strong>{booking.slots}</strong></div>
+              <div><span style={{ color: "var(--text-muted)" }}>Rate:</span> <strong>₹{booking.rentRate}/slot/day</strong></div>
+              <div><span style={{ color: "var(--text-muted)" }}>Original Bill:</span> <strong>₹{Number(booking.totalPrice).toLocaleString()}</strong></div>
+            </div>
+            <div style={{ marginTop: 12, padding: "10px 14px", background: result.refund > 0 ? "rgba(16,185,129,0.08)" : "rgba(239,68,68,0.08)", borderRadius: 8, border: `1px solid ${result.refund > 0 ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}` }}>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>ADJUSTED TOTAL BILL</div>
+              <div style={{ fontSize: 26, fontFamily: "var(--font-display)", fontWeight: 800, color: "#10b981" }}>
+                ₹{Number(result.adjustedTotal).toLocaleString()}
+              </div>
+              <div style={{ fontSize: 12, color: result.refund >= 0 ? "#10b981" : "#ef4444", marginTop: 4 }}>
+                {result.refund > 0
+                  ? `Refund to farmer: ₹${Number(result.refund).toLocaleString()}`
+                  : result.refund < 0
+                    ? `Extra charge from farmer: ₹${Number(Math.abs(result.refund)).toLocaleString()}`
+                    : "No change"}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                {booking.slots} slots × {result.actualDays} days × ₹{booking.rentRate}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="modal-buttons">
+          <button className="btn-ghost" onClick={onClose}>Cancel</button>
+          <button
+            className="btn-primary"
+            onClick={confirmCheckout}
+            disabled={!pickupDate || loading}
+          >
+            {loading ? "Processing…" : "Confirm Checkout"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Booking Modal ────────────────────────────────────────────────────────────
+function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking, onCheckoutBooking, adminPassword }) {
+  const [step, setStep] = useState("view");
   const [customer, setCustomer] = useState("");
   const [farmerId, setFarmerId] = useState("");
   const [farmerPhone, setFarmerPhone] = useState("");
@@ -190,9 +298,7 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
   const [endDate, setEndDate] = useState(addDays(today, 6));
   const [rentRate, setRentRate] = useState(String(chamber.pricePerSlotPerDay || 0));
   const [deleteBookingId, setDeleteBookingId] = useState(null);
-
-
-
+  const [checkoutBookingData, setCheckoutBookingData] = useState(null);
 
   const usedSlots = chamber.bookings?.reduce((sum, b) => sum + b.slots, 0) || 0;
   const availableSlots = Math.max(0, (chamber.totalSlots || 0) - usedSlots);
@@ -201,14 +307,13 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
   const rentRateNum = Math.max(0, Number(rentRate) || 0);
   const price = slotsNum * daysNum * rentRateNum;
 
-  // Check unique farmer ID across this chamber's bookings
   const existingFarmerIds = chamber.bookings?.map((b) => b.farmerId) || [];
 
   const submitBooking = () => {
     if (!customer.trim()) { alert("Customer name is required"); return; }
     if (!farmerId.trim()) { alert("Farmer ID is required"); return; }
     if (existingFarmerIds.includes(farmerId.trim())) {
-      alert(`Farmer ID "${farmerId.trim()}" already has a booking in this chamber. Each farmer must have a unique ID per chamber.`);
+      alert(`Farmer ID "${farmerId.trim()}" already has a booking in this chamber.`);
       return;
     }
     if (!farmerPhone.trim()) { alert("Farmer phone number is required"); return; }
@@ -230,10 +335,14 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
   };
 
   const handleDeleteConfirm = () => {
-
     onDeleteBooking(chamber.id, deleteBookingId);
     setDeleteBookingId(null);
     setStep("view");
+  };
+
+  const handleCheckoutClick = (booking) => {
+    setCheckoutBookingData(booking);
+    setStep("checkout");
   };
 
   if (step === "password") {
@@ -242,6 +351,7 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
         title="Add Booking — Verify Identity"
         onConfirm={() => setStep("form")}
         onClose={() => setStep("view")}
+        adminPassword={adminPassword}
       />
     );
   }
@@ -252,6 +362,18 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
         title="Delete Booking — Verify Identity"
         onConfirm={handleDeleteConfirm}
         onClose={() => { setDeleteBookingId(null); setStep("view"); }}
+        adminPassword={adminPassword}
+      />
+    );
+  }
+
+  if (step === "checkout" && checkoutBookingData) {
+    return (
+      <CheckoutModal
+        booking={checkoutBookingData}
+        onClose={() => { setCheckoutBookingData(null); setStep("view"); }}
+        onCheckout={onCheckoutBooking}
+        adminPassword={adminPassword}
       />
     );
   }
@@ -277,7 +399,7 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  {["Farmer ID", "Customer", "Phone", "Address", "Slots", "Days", "From", "To", "Rate (₹)", "Total (₹)", "Bill", ""].map((h) => (
+                  {["Farmer ID", "Customer", "Phone", "Address", "Slots", "Days", "From", "To", "Rate (₹)", "Total (₹)", "Bill", "Checkout", ""].map((h) => (
                     <th key={h} style={{ textAlign: "left", borderBottom: "1px solid var(--border-subtle)", padding: "6px", fontSize: 13 }}>{h}</th>
                   ))}
                 </tr>
@@ -288,15 +410,23 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
                     <td style={{ padding: "6px", fontSize: 13, color: "var(--accent-ice)", fontWeight: 600 }}>{b.farmerId || "-"}</td>
                     <td style={{ padding: "6px" }}>{b.customer}</td>
                     <td style={{ padding: "6px", fontSize: 12 }}>{b.farmerPhone || "-"}</td>
-                    <td style={{ padding: "6px", fontSize: 12, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.farmerAddress || "-"}</td>
+                    <td style={{ padding: "6px", fontSize: 12, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.farmerAddress || "-"}</td>
                     <td style={{ padding: "6px", textAlign: "right" }}>{b.slots}</td>
                     <td style={{ padding: "6px", textAlign: "right" }}>{b.days}</td>
                     <td style={{ padding: "6px", textAlign: "right" }}>{b.startDate || "-"}</td>
                     <td style={{ padding: "6px", textAlign: "right" }}>{b.endDate || "-"}</td>
-                    <td style={{ padding: "6px", textAlign: "right" }}>₹{Number(b.rentRate || b.totalPrice / (b.slots * b.days) || 0).toLocaleString()}</td>
+                    <td style={{ padding: "6px", textAlign: "right" }}>₹{Number(b.rentRate || 0).toLocaleString()}</td>
                     <td style={{ padding: "6px", textAlign: "right", fontWeight: 600, color: "#10b981" }}>₹{Number(b.totalPrice).toLocaleString()}</td>
                     <td style={{ padding: "6px", fontSize: 12, color: "var(--text-muted)" }}>
                       {b.slots} × {b.days}d × ₹{b.rentRate || 0} = ₹{Number(b.totalPrice).toLocaleString()}
+                    </td>
+                    <td style={{ padding: "6px" }}>
+                      <button
+                        onClick={() => handleCheckoutClick(b)}
+                        style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)", borderRadius: 6, padding: "3px 8px", cursor: "pointer", color: "#10b981", fontSize: 12, whiteSpace: "nowrap" }}
+                      >
+                        Checkout
+                      </button>
                     </td>
                     <td style={{ padding: "6px" }}>
                       <button
@@ -326,7 +456,6 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
           <div style={{ marginTop: 20, borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
             <h4 style={{ marginBottom: 12 }}>Create new booking</h4>
 
-            {/* Farmer ID + Customer */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 10 }}>
               <div>
                 <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
@@ -349,7 +478,6 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
               </div>
             </div>
 
-            {/* Farmer Phone + Address */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
               <div>
                 <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
@@ -378,7 +506,6 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
               </div>
             </div>
 
-            {/* Slots + Duration + Date */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
               <div>
                 <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>Number of Slots</label>
@@ -392,25 +519,18 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
                   value={days}
                   onChange={(e) => {
                     const raw = e.target.value;
-                    if (raw === "") {
-                      setDays("");
-                      return;
-                    }
+                    if (raw === "") { setDays(""); return; }
                     const parsed = parseInt(raw, 10);
                     if (Number.isNaN(parsed)) return;
                     const newDays = Math.min(365, Math.max(1, parsed));
                     setDays(String(newDays));
-                    if (startDate) {
-                      setEndDate(addDays(startDate, newDays - 1));
-                    }
+                    if (startDate) setEndDate(addDays(startDate, newDays - 1));
                   }}
-                  min="1"
-                  max="365"
+                  min="1" max="365"
                 />
               </div>
             </div>
 
-            {/* Start/End Date Sync */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
               <div>
                 <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>Start Date</label>
@@ -443,7 +563,6 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
               </div>
             </div>
 
-            {/* Rent Rate */}
             <div style={{ marginTop: 12 }}>
               <label style={{ fontSize: 13, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
                 Rent Rate (₹ per slot per day)
@@ -459,22 +578,19 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
               />
             </div>
 
-            {/* Bill computation */}
             <div style={{ marginTop: 16, background: "rgba(37,99,235,0.06)", border: "1px solid rgba(37,99,235,0.15)", borderRadius: 12, padding: "14px 18px" }}>
               <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 8 }}>Bill Computation</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, alignItems: "center" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr auto", gap: 10, alignItems: "center" }}>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>SLOTS</div>
                   <div style={{ fontSize: 22, fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--text-primary)" }}>{slotsNum}</div>
                 </div>
-                <div style={{ textAlign: "center", fontSize: 20, color: "var(--text-muted)" }}>×</div>
+                <div style={{ fontSize: 20, color: "var(--text-muted)" }}>×</div>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>DAYS</div>
                   <div style={{ fontSize: 22, fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--text-primary)" }}>{daysNum}</div>
                 </div>
-                <div style={{ textAlign: "center", fontSize: 20, color: "var(--text-muted)" }}>×</div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10, alignItems: "center" }}>
+                <div style={{ fontSize: 20, color: "var(--text-muted)" }}>×</div>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>RATE (₹/slot/day)</div>
                   <div style={{ fontSize: 22, fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--accent-ice)" }}>₹{rentRateNum}</div>
@@ -506,14 +622,13 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking }) {
   );
 }
 
+// ── Dashboard ────────────────────────────────────────────────────────────────
 export function Dashboard({ admin, onBack }) {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
-  // const [chambers, setChambers] = useState(initialChambers);
-
   const [chambers, setChambers] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
@@ -524,12 +639,11 @@ export function Dashboard({ admin, onBack }) {
         setLoading(false);
       })
       .catch(err => {
-        console.error('Error fetching chambers:', err);
+        console.error("Error fetching chambers:", err);
         setFetchError("Backend connect nahi hua.");
         setLoading(false);
       });
   }, [admin]);
-  
 
   useEffect(() => {
     if (!admin?.id) return;
@@ -538,20 +652,11 @@ export function Dashboard({ admin, onBack }) {
       .catch(err => console.error("Customers fetch error:", err));
   }, [admin]);
 
-
-
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedChamberId, setSelectedChamberId] = useState(null);
   const [deleteChamberId, setDeleteChamberId] = useState(null);
 
   const mainLeft = collapsed ? 68 : 240;
-
-  const users = useMemo(() => [
-    { id: "U-1001", name: "Aarav Traders", contact: "+91 98xxxxxx01" },
-    { id: "U-1002", name: "Meera Agro", contact: "+91 98xxxxxx02" },
-    { id: "U-1003", name: "Kisan Group", contact: "+91 98xxxxxx03" },
-    { id: "U-1004", name: "Shree Dairy", contact: "+91 98xxxxxx04" },
-  ], []);
 
   const selectedChamber = useMemo(() => chambers.find((c) => c.id === selectedChamberId) || null, [chambers, selectedChamberId]);
   const totalSlots = useMemo(() => chambers.reduce((sum, ch) => sum + (ch.totalSlots || 0), 0), [chambers]);
@@ -561,10 +666,10 @@ export function Dashboard({ admin, onBack }) {
   const totalRevenue = useMemo(() => chambers.reduce((sum, ch) => sum + ((ch.bookings || []).reduce((s, b) => s + (b.totalPrice || 0), 0)), 0), [chambers]);
 
   const metrics = [
-    { label: "Chambers", value: chambers.length.toString(), unit: "", sub: "storage units", icon: Icons.warehouse, color: "#2563eb", trend: null },
-    { label: "Slots Available", value: availableSlots.toLocaleString(), unit: "", sub: `of ${totalSlots.toLocaleString()} total`, icon: Icons.package, color: "#10b981", trend: null },
-    { label: "Booked Slots", value: bookedSlots.toLocaleString(), unit: "", sub: `avg usage ${avgCap}%`, icon: Icons.users, color: "#7c3aed", trend: null },
-    { label: "Estimated Billing", value: totalRevenue.toLocaleString(), unit: " ₹", sub: "from bookings", icon: Icons.chart, color: "#f59e0b", trend: null },
+    { label: "Chambers", value: chambers.length.toString(), unit: "", sub: "storage units", icon: Icons.warehouse, color: "#2563eb" },
+    { label: "Slots Available", value: availableSlots.toLocaleString(), unit: "", sub: `of ${totalSlots.toLocaleString()} total`, icon: Icons.package, color: "#10b981" },
+    { label: "Booked Slots", value: bookedSlots.toLocaleString(), unit: "", sub: `avg usage ${avgCap}%`, icon: Icons.users, color: "#7c3aed" },
+    { label: "Estimated Billing", value: totalRevenue.toLocaleString(), unit: " ₹", sub: "from bookings", icon: Icons.chart, color: "#f59e0b" },
   ];
 
   const sparkData = [
@@ -596,15 +701,7 @@ export function Dashboard({ admin, onBack }) {
 
   if (loading) {
     return (
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        color: "var(--accent-ice)",
-        fontFamily: "var(--font-display)",
-        fontSize: 18
-      }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "var(--accent-ice)", fontFamily: "var(--font-display)", fontSize: 18 }}>
         Loading chambers...
       </div>
     );
@@ -612,13 +709,8 @@ export function Dashboard({ admin, onBack }) {
 
   const downloadReport = () => {
     const csvHeader = ["Farmer ID", "Customer", "Chamber ID", "Chamber", "Slots", "Days", "Start Date", "End Date", "RentRate(₹/slot/day)", "Total(₹)", "Created At"];
-    const rows = reportRows.map((row) => [
-      row.farmerId, row.customer, row.chamberId, row.chamberName,
-      row.slots, row.days, row.startDate, row.endDate, row.rentRate, row.total, row.createdAt,
-    ]);
-    const csvContent = [csvHeader, ...rows]
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    const rows = reportRows.map((row) => [row.farmerId, row.customer, row.chamberId, row.chamberName, row.slots, row.days, row.startDate, row.endDate, row.rentRate, row.total, row.createdAt]);
+    const csvContent = [csvHeader, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -626,45 +718,47 @@ export function Dashboard({ admin, onBack }) {
     link.click();
   };
 
-const handleAddChamber = async (newChamber) => {
-  try {
-    const res = await addChamber({ ...newChamber, adminId: admin.id });
-    setChambers(prev => [...prev, res.data]);
-    setShowAddModal(false);
-  } catch (err) {
-    const msg = err.response?.data?.error || "Chamber save nahi hua";
-    alert(msg);
-  }
-};
+  const handleAddChamber = async (newChamber) => {
+    try {
+      const res = await addChamber({ ...newChamber, adminId: admin.id });
+      setChambers(prev => [...prev, res.data]);
+      setShowAddModal(false);
+    } catch (err) {
+      alert(err.response?.data?.error || "Chamber save nahi hua");
+    }
+  };
 
-const handleDeleteChamber = async (id) => {
-  try {
-    await deleteChamber(id);           // Backend se delete karo
-    const res = await getAllChambers(); // Fresh data lao
-    setChambers(res.data);
-  } catch (err) {
-    console.error("Delete chamber error:", err);
-    alert("Chamber delete nahi hua. Backend check karo.");
-  } finally {
-    setDeleteChamberId(null);
-  }
-};
+  const handleDeleteChamber = async (id) => {
+    try {
+      await deleteChamber(id);
+      const res = await getAllChambers(admin.id);
+      setChambers(res.data);
+    } catch (err) {
+      console.error("Delete chamber error:", err);
+      alert("Chamber delete nahi hua.");
+    } finally {
+      setDeleteChamberId(null);
+    }
+  };
 
   const handleSelectChamber = (id) => setSelectedChamberId(id);
   const handleCloseChamberDetail = () => setSelectedChamberId(null);
 
-
+  // FIX 4: farmerPhone and farmerAddress now passed to createCustomer so DB stores them
   const handleCreateBooking = async (chamberId, customer, farmerId, slots, days, rentRate, totalPrice, startDate, endDate, farmerPhone = "", farmerAddress = "") => {
     try {
-      // Auto-add customer if not exists
       const exists = customers.find(c => c.name.toLowerCase() === customer.toLowerCase());
       if (!exists) {
-        const custRes = await createCustomer({ name: customer, adminId: admin.id, phone: "", address: "" });
+        const custRes = await createCustomer({
+          name: customer,
+          adminId: admin.id,
+          phone: farmerPhone,
+          address: farmerAddress
+        });
         if (custRes.status === 201) {
           setCustomers(prev => [...prev, custRes.data]);
         }
       }
-  
       const res = await createBooking({
         chamber: { id: chamberId },
         customer,
@@ -689,20 +783,31 @@ const handleDeleteChamber = async (id) => {
     }
   };
 
-
-const handleDeleteBooking = async (chamberId, bookingId) => {
-  try {
-    const delRes = await deleteBooking(bookingId);     // Backend se delete
-    if (!(delRes && delRes.status && delRes.status.toString().startsWith("2"))) {
-      throw new Error("Delete booking API failed");
+  const handleDeleteBooking = async (chamberId, bookingId) => {
+    try {
+      const delRes = await deleteBooking(bookingId);
+      if (!(delRes && delRes.status && delRes.status.toString().startsWith("2"))) {
+        throw new Error("Delete booking API failed");
+      }
+      const res = await getAllChambers(admin.id);
+      setChambers(res.data);
+    } catch (err) {
+      console.error("Delete booking error:", err);
+      alert("Booking delete nahi hui.");
     }
-    const res = await getAllChambers(); // Fresh data lao
-    setChambers(res.data);
-  } catch (err) {
-    console.error("Delete booking error:", err);
-    alert("Booking delete nahi hui. Backend check karo.");
-  }
-};
+  };
+
+  // FIX 2: Handle early/late checkout
+  const handleCheckoutBooking = async (bookingId, actualPickupDate) => {
+    try {
+      await checkoutBooking(bookingId, actualPickupDate);
+      const updated = await getAllChambers(admin.id);
+      setChambers(updated.data);
+    } catch (err) {
+      alert("Checkout failed: " + (err.response?.data?.error || err.message));
+      throw err;
+    }
+  };
 
   if (activeNav === "reports") {
     return (
@@ -775,9 +880,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
     const now = Date.now();
     const alerts = chambers.flatMap((c) =>
       (c.bookings || []).map((b) => {
-        const start = new Date(b.createdAt || new Date()).getTime();
-        const end = start + (b.days || 0) * 24 * 60 * 60 * 1000;
-        const remainingDays = Math.max(0, Math.ceil((end - now) / (24 * 60 * 60 * 1000)));
+        const end = b.endDate ? new Date(b.endDate).getTime() : new Date(b.createdAt || new Date()).getTime() + (b.days || 0) * 864e5;
+        const remainingDays = Math.max(0, Math.ceil((end - now) / 864e5));
         return { chamberId: c.id, chamberName: c.name, customer: b.customer, farmerId: b.farmerId, remainingDays };
       }),
     ).sort((a, b) => a.remainingDays - b.remainingDays);
@@ -830,7 +934,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
             </p>
             <div className="glass-card" style={{ padding: 20 }}>
               {customers.length === 0 ? (
-                <p style={{ color: "var(--text-muted)", fontSize: 15 }}>No customers yet. They appear automatically when you create a booking.</p>
+                <p style={{ color: "var(--text-muted)", fontSize: 15 }}>No customers yet.</p>
               ) : (
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
@@ -862,7 +966,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
       </div>
     );
   }
-  
+
   if (activeNav === "chambers") {
     const editChamber = (id, updates) => {
       setChambers((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
@@ -925,12 +1029,13 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
             </div>
           </div>
         </main>
-        {showAddModal && <AddChamberModal onClose={() => setShowAddModal(false)} onSubmit={handleAddChamber} />}
+        {showAddModal && <AddChamberModal onClose={() => setShowAddModal(false)} onSubmit={handleAddChamber} adminPassword={admin?.password} />}
         {deleteChamberId && (
           <DeleteChamberModal
             chamberId={deleteChamberId}
             onConfirm={() => handleDeleteChamber(deleteChamberId)}
             onClose={() => setDeleteChamberId(null)}
+            adminPassword={admin?.password}
           />
         )}
         {selectedChamber && (
@@ -939,6 +1044,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
             onClose={handleCloseChamberDetail}
             onCreateBooking={handleCreateBooking}
             onDeleteBooking={handleDeleteBooking}
+            onCheckoutBooking={handleCheckoutBooking}
+            adminPassword={admin?.password}
           />
         )}
       </div>
@@ -952,30 +1059,17 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
       <main style={{ marginLeft: mainLeft, paddingTop: 68, transition: "margin-left 0.3s cubic-bezier(0.4,0,0.2,1)", minHeight: "100vh" }}>
         <div style={{ padding: "32px 36px" }}>
           {fetchError && (
-            <div style={{
-              marginBottom: 16,
-              background: "rgba(245,158,11,0.08)",
-              border: "1px solid rgba(245,158,11,0.25)",
-              color: "#b45309",
-              borderRadius: 10,
-              padding: "10px 14px",
-              fontSize: 14
-            }}>
+            <div style={{ marginBottom: 16, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", color: "#b45309", borderRadius: 10, padding: "10px 14px", fontSize: 14 }}>
               {fetchError}
             </div>
           )}
           <div className="animate-fadeInUp" style={{ marginBottom: 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-              <div>
-                <h1 style={{ fontFamily: "var(--font-display)", fontSize: 31, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>
-                  Storage & Billing Dashboard
-                </h1>
-                <p style={{ fontSize: 19, color: "var(--text-muted)", marginTop: 6 }}>
-                  Manage bookings by slots · Pricing by days · Auto billing
-                </p>
-              </div>
-              <div />
-            </div>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 31, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>
+              Storage & Billing Dashboard
+            </h1>
+            <p style={{ fontSize: 19, color: "var(--text-muted)", marginTop: 6 }}>
+              Manage bookings by slots · Pricing by days · Auto billing
+            </p>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
@@ -1003,44 +1097,25 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16, marginBottom: 24 }}>
-            {/* <div className="glass-card" style={{ padding: 24, animation: "fadeInUp 0.7s ease 0.4s both" }}>
-              {/* <AlertsPanel /> 
-              <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--border-subtle)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {[
-                  { label: "Total Slots", value: totalSlots.toLocaleString(), color: "#2563eb" },
-                  { label: "Booked Slots", value: bookedSlots.toLocaleString(), color: "#7c3aed" },
-                  { label: "Available Slots", value: availableSlots.toLocaleString(), color: "#10b981" },
-                  { label: "Avg Capacity", value: `${avgCap}%`, color: "#f59e0b" },
-                ].map((s) => (
-                  <div key={s.label} style={{ background: "var(--surface-2)", borderRadius: 8, padding: "10px 12px", border: "1px solid rgba(15,23,42,0.08)" }}>
-                    <div style={{ fontSize: 15, color: "var(--text-muted)", marginBottom: 4 }}>{s.label}</div>
-                    <div style={{ fontSize: 20, fontFamily: "var(--font-display)", fontWeight: 700, color: s.color }}>{s.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div> */}
-          </div>
-
           <div style={{ animation: "fadeInUp 0.7s ease 0.5s both" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>
                 <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, color: "var(--text-primary)" }}>Chambers</h2>
                 <p style={{ fontSize: 17, color: "var(--text-muted)", marginTop: 2 }}>{chambers.length} chambers · pricing by slot/day</p>
               </div>
-              <div />
             </div>
             <ChamberGrid chambers={chambers} onSelectChamber={handleSelectChamber} />
           </div>
         </div>
       </main>
 
-      {showAddModal && <AddChamberModal onClose={() => setShowAddModal(false)} onSubmit={handleAddChamber} />}
+      {showAddModal && <AddChamberModal onClose={() => setShowAddModal(false)} onSubmit={handleAddChamber} adminPassword={admin?.password} />}
       {deleteChamberId && (
         <DeleteChamberModal
           chamberId={deleteChamberId}
           onConfirm={() => handleDeleteChamber(deleteChamberId)}
           onClose={() => setDeleteChamberId(null)}
+          adminPassword={admin?.password}
         />
       )}
       {selectedChamber && (
@@ -1049,6 +1124,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
           onClose={handleCloseChamberDetail}
           onCreateBooking={handleCreateBooking}
           onDeleteBooking={handleDeleteBooking}
+          onCheckoutBooking={handleCheckoutBooking}
+          adminPassword={admin?.password}
         />
       )}
     </div>

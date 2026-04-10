@@ -24,11 +24,11 @@ export function LandingPage({ onEnterDashboard }) {
   ];
 
   const features = [
-    {
-      icon: Icons.thermometer,
-      title: "Full Chamber Management",
-      desc: "Add and monitor Chambers with temperature, humidity, zone, and status, with capacity shown as first priority.",
-    },
+    // {
+    //   icon: Icons.thermometer,
+    //   title: "Full Chamber Management",
+    //   desc: "Add and monitor Chambers with temperature, humidity, zone, and status, with capacity shown as first priority.",
+    // },
     {
       icon: Icons.shield,
       title: "Customer Storage Owners",
@@ -137,23 +137,7 @@ export function LandingPage({ onEnterDashboard }) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          {["Platform", "Solutions", "Pricing", "Docs", "Contact"].map((item) => (
-            <span
-              key={item}
-              style={{
-                fontSize: 17,
-                color: "var(--text-secondary)",
-                cursor: "pointer",
-                fontFamily: "var(--font-body)",
-                fontWeight: 400,
-                transition: "color 0.2s",
-              }}
-              onMouseEnter={(e) => (e.target.style.color = "var(--accent-ice)")}
-              onMouseLeave={(e) => (e.target.style.color = "var(--text-secondary)")}
-            >
-              {item}
-            </span>
-          ))}
+         
           <button
             className="btn-primary"
             onClick={onEnterDashboard}
@@ -400,8 +384,8 @@ export function LandingPage({ onEnterDashboard }) {
       <section style={{ position: "relative", zIndex: 1, padding: "0 60px 80px", maxWidth: 1300, margin: "0 auto" }}>
         <div
           style={{
-            background: "rgba(8,18,36,0.7)",
-            border: "1px solid rgba(77,217,240,0.18)",
+            background: "linear-gradient(135deg, rgba(37,99,235,0.08), rgba(96,165,250,0.03))",
+            border: "1px solid var(--border-subtle)",
             borderRadius: 24,
             padding: "56px 80px",
             backdropFilter: "blur(20px)",
@@ -413,16 +397,16 @@ export function LandingPage({ onEnterDashboard }) {
           <div style={{
             position: "absolute", left: -60, bottom: -60,
             width: 260, height: 260,
-            background: "radial-gradient(circle, rgba(77,217,240,0.09), transparent 70%)",
+            background: "radial-gradient(circle, rgba(37,99,235,0.14), transparent 70%)",
             borderRadius: "50%", pointerEvents: "none",
           }} />
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 40, position: "relative" }}>
             <div>
-              <div style={{ fontSize: 12, letterSpacing: "0.14em", color: "var(--accent-ice)", fontWeight: 600, marginBottom: 10, textTransform: "uppercase" }}>
-                📞 Contact Us
+              <div style={{ fontSize: 12, letterSpacing: "0.14em", color: "var(--accent-ice)", fontWeight: 700, marginBottom: 10, textTransform: "uppercase" }}>
+                Contact Us
               </div>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10, lineHeight: 1.2 }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10, lineHeight: 1.2 }}>
                 We're here to help
               </h2>
               <p style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 380, lineHeight: 1.65 }}>
@@ -442,27 +426,27 @@ export function LandingPage({ onEnterDashboard }) {
                   href={`tel:+91${number}`}
                   style={{
                     display: "flex", flexDirection: "column", gap: 4,
-                    background: "rgba(77,217,240,0.06)",
-                    border: "1px solid rgba(77,217,240,0.18)",
+                    background: "rgba(255,255,255,0.92)",
+                    border: "1px solid var(--border-subtle)",
                     borderRadius: 14, padding: "16px 20px",
                     textDecoration: "none",
                     transition: "all 0.2s",
                     cursor: "pointer",
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = "rgba(77,217,240,0.13)";
-                    e.currentTarget.style.borderColor = "rgba(77,217,240,0.45)";
+                    e.currentTarget.style.background = "var(--bg-hover)";
+                    e.currentTarget.style.borderColor = "var(--border-active)";
                     e.currentTarget.style.transform = "translateY(-2px)";
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.background = "rgba(77,217,240,0.06)";
-                    e.currentTarget.style.borderColor = "rgba(77,217,240,0.18)";
+                    e.currentTarget.style.background = "rgba(255,255,255,0.92)";
+                    e.currentTarget.style.borderColor = "var(--border-subtle)";
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
                   <span style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{name}</span>
-                  <span style={{ fontSize: 18, fontWeight: 700, color: "var(--accent-ice)", fontFamily: "var(--font-display)", letterSpacing: "0.04em" }}>
-                    📱 {number}
+                  <span style={{ fontSize: 18, fontWeight: 800, color: "var(--accent-ice)", fontFamily: "var(--font-display)", letterSpacing: "0.02em" }}>
+                    {number}
                   </span>
                 </a>
               ))}
@@ -494,7 +478,7 @@ export function LandingPage({ onEnterDashboard }) {
               top: -60,
               width: 300,
               height: 300,
-              background: "radial-gradient(circle, rgba(77,217,240,0.1), transparent 70%)",
+              background: "radial-gradient(circle, rgba(158, 218, 227, 0.1), transparent 70%)",
               borderRadius: "50%",
             }}
           />

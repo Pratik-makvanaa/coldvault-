@@ -8,11 +8,12 @@ import { login, signup } from "./api/api.js";
 export default function App() {
   const [view, setView] = useState("landing");
   const [loginError, setLoginError] = useState("");
-  const [currentAdmin, setCurrentAdmin] = useState(null); // { id, username, businessName }
+  const [currentAdmin, setCurrentAdmin] = useState(null);
 
   const handleLogin = async (username, password) => {
     try {
       const res = await login({ username, password });
+      // FIX 3: res.data now includes password for per-admin modal verification
       setCurrentAdmin(res.data);
       setLoginError("");
       setView("dashboard");
@@ -24,11 +25,12 @@ export default function App() {
   const handleSignup = async (data) => {
     try {
       const res = await signup(data);
-      setCurrentAdmin(res.data);
+      // FIX 3: After signup, store password in session so PasswordModal works immediately
+      setCurrentAdmin({ ...res.data, password: data.password });
       setLoginError("");
       setView("dashboard");
     } catch (err) {
-      throw err; // let SignupPage handle it
+      throw err;
     }
   };
 
