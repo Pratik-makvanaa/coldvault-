@@ -2,13 +2,12 @@ import { Icons } from "../../../components/icons/index.jsx";
 
 export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
   const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-    { id: "chambers", label: "Chambers", icon: Icons.warehouse },
-    // { id: "monitoring", label: "Monitoring", icon: Icons.thermometer },
-    // { id: "inventory", label: "Inventory", icon: Icons.package },
-    { id: "alerts", label: "Alerts", icon: Icons.alert, badge: 3 },
-    { id: "reports", label: "Reports", icon: Icons.chart },
-    { id: "users", label: "Users", icon: Icons.users },
+    { id: "dashboard",    label: "Dashboard",    icon: Icons.dashboard },
+    { id: "chambers",     label: "Chambers",     icon: Icons.warehouse },
+    { id: "all-bookings", label: "All Bookings", icon: Icons.chart },
+    { id: "alerts",       label: "Alerts",       icon: Icons.alert, badge: 3 },
+    { id: "reports",      label: "Reports",      icon: Icons.package },
+    { id: "users",        label: "Users",        icon: Icons.users },
   ];
 
   return (
@@ -51,7 +50,6 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
               alignItems: "center",
               justifyContent: "center",
               boxShadow: "0 10px 22px rgba(37,99,235,0.18)",
-              onClick: () => setView("landing"),
             }}
           >
             <Icons.snowflake />
@@ -96,45 +94,19 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
                 position: "relative",
                 transition: "all 0.2s ease",
               }}
-              onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.background = "rgba(37,99,235,0.06)";
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.background = "transparent";
-              }}
+              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "rgba(37,99,235,0.06)"; }}
+              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <div style={{ flexShrink: 0 }}>
                 <item.icon />
               </div>
               {!collapsed && (
-                <span
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 14,
-                    fontWeight: isActive ? 500 : 400,
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <span style={{ fontFamily: "var(--font-body)", fontSize: 14, fontWeight: isActive ? 500 : 400, whiteSpace: "nowrap" }}>
                   {item.label}
                 </span>
               )}
               {!collapsed && item.badge && (
-                <div
-                  style={{
-                    marginLeft: "auto",
-                    width: 20,
-                    height: 20,
-                    borderRadius: 6,
-                    background: "rgba(239,68,68,0.10)",
-                    border: "1px solid rgba(239,68,68,0.22)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 11,
-                    color: "#ef4444",
-                    fontWeight: 700,
-                  }}
-                >
+                <div style={{ marginLeft: "auto", width: 20, height: 20, borderRadius: 6, background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.22)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#ef4444", fontWeight: 700 }}>
                   {item.badge}
                 </div>
               )}
@@ -143,35 +115,14 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
         })}
       </nav>
 
-      {/* Bottom — collapsed toggle + settings */}
+      {/* Bottom */}
       <div style={{ padding: "12px 10px", borderTop: "1px solid var(--border-subtle)" }}>
         {collapsed && (
-          <div
-            onClick={() => setCollapsed(false)}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: 12,
-              borderRadius: 10,
-              cursor: "pointer",
-              color: "var(--text-muted)",
-              marginBottom: 8,
-            }}
-          >
+          <div onClick={() => setCollapsed(false)} style={{ display: "flex", justifyContent: "center", padding: 12, borderRadius: 10, cursor: "pointer", color: "var(--text-muted)", marginBottom: 8 }}>
             <Icons.menu />
           </div>
         )}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: collapsed ? "12px" : "12px 14px",
-            borderRadius: 10,
-            justifyContent: collapsed ? "center" : "flex-start",
-            cursor: "pointer",
-            color: "var(--text-muted)",
-          }}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: collapsed ? "12px" : "12px 14px", borderRadius: 10, justifyContent: collapsed ? "center" : "flex-start", cursor: "pointer", color: "var(--text-muted)" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-ice)")}
           onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
         >
@@ -182,4 +133,3 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
     </div>
   );
 }
-

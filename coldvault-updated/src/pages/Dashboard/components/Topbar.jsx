@@ -121,7 +121,7 @@ export function Topbar({ collapsed, onBack }) {
 
         {/* Back to landing */}
         <button onClick={onBack} className="btn-ghost" style={{ padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontSize: 17 }}>
-          ← Landing
+          ← Log out
         </button>
       </div>
     </div>

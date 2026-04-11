@@ -128,7 +128,7 @@ function EditChamberModal({ chamber, onSave, onClose }) {
   const handleSave = () => {
     const parsed = {
       ...form,
-      totalSlots:   parseInt(form.totalSlots)   || 0,
+      totalSlots:   parseInt(form.totalSlots)   || 0, 
       pricePerSlot: parseFloat(form.pricePerSlot) || 0,
       minTemp:      parseFloat(form.minTemp)      || 0,
       maxTemp:      parseFloat(form.maxTemp)      || 0,
