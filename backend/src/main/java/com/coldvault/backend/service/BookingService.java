@@ -18,11 +18,8 @@ import com.coldvault.backend.repository.ChamberRepository;
 @Service
 public class BookingService {
 
-    @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private ChamberRepository chamberRepository;
+    @Autowired private BookingRepository bookingRepository;
+    @Autowired private ChamberRepository chamberRepository;
 
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
@@ -34,32 +31,37 @@ public class BookingService {
             booking.setCreatedAt(java.time.LocalDateTime.now().toString());
         }
         if (booking.getTotalPrice() == 0 && booking.getRentRate() > 0) {
-            booking.setTotalPrice(
-                    booking.getSlots() * booking.getDays() * booking.getRentRate()
-            );
+            booking.setTotalPrice(booking.getSlots() * booking.getDays() * booking.getRentRate());
         }
+        // New bookings always start as ACTIVE
+        booking.setCheckoutStatus("ACTIVE");
 
         Booking saved = bookingRepository.save(booking);
+
+        // Reduce available slots in the chamber
         if (saved.getChamber() != null) {
-            Chamber chamber = chamberRepository
-                    .findById(saved.getChamber().getId())
-                    .orElse(null);
+            Chamber chamber = chamberRepository.findById(saved.getChamber().getId()).orElse(null);
             if (chamber != null) {
-                chamber.setAvailableSlots(
-                        Math.max(0, chamber.getAvailableSlots() - saved.getSlots())
-                );
+                chamber.setAvailableSlots(Math.max(0, chamber.getAvailableSlots() - saved.getSlots()));
                 chamberRepository.save(chamber);
             }
         }
-
         return saved;
     }
 
-    // FIX 2: Checkout — handles early pickup (refund + free slots) and late pickup (extra charge)
+    /**
+     * Checkout — marks booking as CHECKED_OUT (keeps it in DB for history/all-bookings page).
+     * Always restores slots to chamber (so others can book).
+     * Recalculates bill for early/late pickup.
+     */
     @Transactional
     public Map<String, Object> checkoutBooking(Long bookingId, LocalDate actualPickupDate) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if ("CHECKED_OUT".equals(booking.getCheckoutStatus())) {
+            throw new RuntimeException("Booking already checked out");
+        }
 
         LocalDate bookedEndDate = booking.getEndDate();
         LocalDate startDate     = booking.getStartDate();
@@ -67,28 +69,24 @@ public class BookingService {
         int slots               = booking.getSlots();
         double originalTotal    = booking.getTotalPrice();
 
-        // Actual days used inclusive (startDate to actualPickupDate)
         long actualDays = ChronoUnit.DAYS.between(startDate, actualPickupDate) + 1;
         if (actualDays < 1) actualDays = 1;
 
         double adjustedTotal = slots * actualDays * rentRate;
-        // positive = late (farmer owes more), negative = early (farmer gets refund)
         long extraDays = ChronoUnit.DAYS.between(bookedEndDate, actualPickupDate);
-        // positive = refund to farmer, negative = extra charge owed
         double refund = originalTotal - adjustedTotal;
 
-        // Save updated booking
+        // Update booking — mark as CHECKED_OUT (stays in DB for analytics)
         booking.setActualPickupDate(actualPickupDate);
         booking.setDays((int) actualDays);
         booking.setTotalPrice(adjustedTotal);
         booking.setEndDate(actualPickupDate);
+        booking.setCheckoutStatus("CHECKED_OUT");  // ← KEY CHANGE: marks as done
         bookingRepository.save(booking);
 
-        // If farmer came EARLY: free the slots immediately so chamber can be reused
-        if (extraDays < 0 && booking.getChamber() != null) {
-            Chamber chamber = chamberRepository
-                    .findById(booking.getChamber().getId())
-                    .orElse(null);
+        // Always restore slots on checkout (chamber capacity freed)
+        if (booking.getChamber() != null) {
+            Chamber chamber = chamberRepository.findById(booking.getChamber().getId()).orElse(null);
             if (chamber != null) {
                 chamber.setAvailableSlots(chamber.getAvailableSlots() + slots);
                 chamberRepository.save(chamber);
@@ -115,23 +113,19 @@ public class BookingService {
         result.put("extraDays",        (int) extraDays);
         result.put("refund",           refund);
         result.put("status",           status);
+        result.put("checkoutStatus",   "CHECKED_OUT");
         return result;
     }
 
     @Transactional
     public void deleteBooking(Long id) {
-
         Booking booking = bookingRepository.findById(id).orElse(null);
-
         if (booking != null) {
-            if (booking.getChamber() != null) {
-                Chamber chamber = chamberRepository
-                        .findById(booking.getChamber().getId())
-                        .orElse(null);
+            // Restore slots only if still ACTIVE (not already checked out)
+            if (!"CHECKED_OUT".equals(booking.getCheckoutStatus()) && booking.getChamber() != null) {
+                Chamber chamber = chamberRepository.findById(booking.getChamber().getId()).orElse(null);
                 if (chamber != null) {
-                    chamber.setAvailableSlots(
-                            chamber.getAvailableSlots() + booking.getSlots()
-                    );
+                    chamber.setAvailableSlots(chamber.getAvailableSlots() + booking.getSlots());
                     chamberRepository.save(chamber);
                 }
             }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.coldvault.backend.model.Booking;
@@ -27,7 +28,9 @@ public class BookingController {
     private BookingService bookingService;
 
     @GetMapping
-    public List<Booking> getAllBookings() {
+    public List<Booking> getAllBookings(@RequestParam(required = false) Long adminId) {
+        // adminId filtering happens at the chamber level via getAllChambers;
+        // here we return all for now (can be filtered by adminId via chamber join if needed)
         return bookingService.getAllBookings();
     }
 
@@ -37,8 +40,10 @@ public class BookingController {
         return ResponseEntity.status(201).body(saved);
     }
 
-    // FIX 2: Checkout endpoint — early pickup frees slots + recalculates bill,
-    //         late pickup charges extra days at same rate
+    /**
+     * Checkout endpoint — marks booking CHECKED_OUT, restores chamber slots,
+     * recalculates bill for early/late pickup.
+     */
     @PostMapping("/{id}/checkout")
     public ResponseEntity<?> checkoutBooking(
             @PathVariable Long id,
@@ -57,7 +62,8 @@ public class BookingController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBooking(@PathVariable Long id) {
+    public ResponseEntity<?> deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);
+        return ResponseEntity.ok(Map.of("deleted", id));
     }
 }
