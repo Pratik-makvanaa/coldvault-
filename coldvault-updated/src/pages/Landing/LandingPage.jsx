@@ -18,17 +18,17 @@ export function LandingPage({ onEnterDashboard }) {
 
   const stats = [
     { value: "100%", label: "Active Chamber Tracking" },
-    { value: "Real-time", label: "Temperature + Capacity" },
+    // { value: "Real-time", label: "Temperature + Capacity" },
     { value: "500+", label: "Managed Items" },
     { value: "24/7", label: "Billing & Reporting" },
   ];
 
   const features = [
-    // {
-    //   icon: Icons.thermometer,
-    //   title: "Full Chamber Management",
-    //   desc: "Add and monitor Chambers with temperature, humidity, zone, and status, with capacity shown as first priority.",
-    // },
+    {
+      icon: Icons.thermometer,
+      title: "Full Chamber Management",
+      desc: "Add and monitor Chambers with their status and capacity shown as first priority.",
+    },
     {
       icon: Icons.shield,
       title: "Customer Storage Owners",
@@ -52,7 +52,7 @@ export function LandingPage({ onEnterDashboard }) {
     {
       icon: Icons.truck,
       title: "Future-Ready Data Model",
-      desc: "Everything is structured for a later database integration (chambers + inventory + customers).",
+      desc: "Everything is structured and database integration (chambers + inventory + customers).",
     },
   ];
 
@@ -245,11 +245,11 @@ export function LandingPage({ onEnterDashboard }) {
                 Launch Dashboard
                 <Icons.arrowRight />
               </button>
-              <button
+              {/* <button
                 className="btn-ghost"
                 style={{
                   padding: "16px 36px",
-                  borderRadius: 12,
+                  borderRadius: 12
                   cursor: "pointer",
                   fontSize: 18,
                   display: "flex",
@@ -259,7 +259,7 @@ export function LandingPage({ onEnterDashboard }) {
               >
                 <Icons.eye />
                 Live Demo
-              </button>
+              </button> */}
             </div>
 
             {/* Stat row */}
@@ -319,7 +319,7 @@ export function LandingPage({ onEnterDashboard }) {
               marginBottom: 16,
             }}
           >
-           Critical Cold <span style={{ color: "var(--accent-ice)" }}>Features</span>
+           ColdVault <span style={{ color: "var(--accent-ice)" }}>Features</span>
           </h2>
           {/* <p style={{ color: "var(--text-secondary)", fontSize: 19, maxWidth: 500, margin: "0 auto" }}>
             Every feature purpose-built for pharmaceutical, food & beverage, and industrial cold storage operations.
@@ -456,7 +456,7 @@ export function LandingPage({ onEnterDashboard }) {
       </section>
 
       {/* CTA Banner */}
-      <section style={{ position: "relative", zIndex: 1, padding: "60px 60px 100px", maxWidth: 1300, margin: "0 auto" }}>
+      {/* <section style={{ position: "relative", zIndex: 1, padding: "60px 60px 100px", maxWidth: 1300, margin: "0 auto" }}>
         <div
           style={{
             background: "linear-gradient(135deg, rgba(14,165,201,0.15), rgba(77,217,240,0.05))",
@@ -482,14 +482,14 @@ export function LandingPage({ onEnterDashboard }) {
               borderRadius: "50%",
             }}
           />
-          <div>
+          {/* <div>
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: 37, fontWeight: 700, marginBottom: 12 }}>
               Ready to go below zero?
             </h2>
             <p style={{ color: "var(--text-secondary)", fontSize: 19 }}>
               Join 800+ facilities running on ColdVault infrastructure.
             </p>
-          </div>
+          </div> 
           <button
             className="btn-primary"
             onClick={onEnterDashboard}
@@ -509,7 +509,7 @@ export function LandingPage({ onEnterDashboard }) {
             <Icons.arrowRight />
           </button>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }
