@@ -14,7 +14,7 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
     <div
       className="sidebar"
       style={{
-        width: collapsed ? 68 : 240,
+        width: collapsed ? 84 : 264,
         height: "100vh",
         position: "fixed",
         left: 0,
@@ -30,7 +30,7 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
       {/* Logo */}
       <div
         style={{
-          padding: collapsed ? "20px 14px" : "20px 20px",
+          padding: collapsed ? "20px 16px" : "20px 18px",
           borderBottom: "1px solid var(--border-subtle)",
           display: "flex",
           alignItems: "center",
@@ -41,11 +41,11 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
-              width: 34,
-              height: 34,
+              width: 38,
+              height: 38,
               borderRadius: 10,
               flexShrink: 0,
-              background: "linear-gradient(135deg, #2563eb, #60a5fa)",
+              background: "linear-gradient(135deg, #0f766e, #14b8a6)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -55,7 +55,7 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
             <Icons.snowflake />
           </div>
           {!collapsed && (
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 700, whiteSpace: "nowrap" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, whiteSpace: "nowrap" }}>
               COLD<span style={{ color: "var(--accent-ice)" }}>VAULT</span>
             </span>
           )}
@@ -63,8 +63,9 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
         {!collapsed && (
           <button
             onClick={() => setCollapsed(true)}
-            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4 }}
+            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, fontSize: 16 }}
           >
+            ←
           </button>
         )}
       </div>
@@ -82,10 +83,10 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                padding: collapsed ? "12px" : "11px 14px",
-                borderRadius: 10,
+                padding: collapsed ? "13px" : "12px 14px",
+                borderRadius: 12,
                 cursor: "pointer",
-                marginBottom: 2,
+                marginBottom: 4,
                 justifyContent: collapsed ? "center" : "flex-start",
                 background: isActive
                   ? "linear-gradient(90deg, rgba(37,99,235,0.12), rgba(37,99,235,0.04))"
@@ -101,7 +102,7 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
                 <item.icon />
               </div>
               {!collapsed && (
-                <span style={{ fontFamily: "var(--font-body)", fontSize: 14, fontWeight: isActive ? 500 : 400, whiteSpace: "nowrap" }}>
+                <span style={{ fontFamily: "var(--font-body)", fontSize: 15, fontWeight: isActive ? 600 : 500, whiteSpace: "nowrap" }}>
                   {item.label}
                 </span>
               )}
@@ -122,12 +123,12 @@ export function Sidebar({ active, setActive, collapsed, setCollapsed }) {
             <Icons.menu />
           </div>
         )}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: collapsed ? "12px" : "12px 14px", borderRadius: 10, justifyContent: collapsed ? "center" : "flex-start", cursor: "pointer", color: "var(--text-muted)" }}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: collapsed ? "12px" : "12px 14px", borderRadius: 12, justifyContent: collapsed ? "center" : "flex-start", cursor: "pointer", color: "var(--text-muted)" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-ice)")}
           onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
         >
           <Icons.settings />
-          {!collapsed && <span style={{ fontSize: 14 }}>Settings</span>}
+          {!collapsed && <span style={{ fontSize: 15 }}>Settings</span>}
         </div>
       </div>
     </div>

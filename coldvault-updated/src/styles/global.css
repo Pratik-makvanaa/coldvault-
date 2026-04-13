@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -7,47 +7,47 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Light, simple, friendly palette */
-  --bg-void: #f7fafc;     /* page background */
-  --bg-deep: #eef2f7;     /* subtle surface for scrollbar track */
-  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-void: #ecf2f8;
+  --bg-deep: #dbe8f4;
+  --bg-card: rgba(255, 255, 255, 0.94);
   --bg-glass: rgba(255, 255, 255, 0.98);
-  --bg-hover: rgba(37, 99, 235, 0.06);
+  --bg-hover: rgba(13, 148, 136, 0.08);
 
-  --accent-ice: #2563eb;   /* primary (blue) */
-  --accent-frost: #60a5fa; /* light blue */
-  --accent-cryo: #1d4ed8;  /* deep blue */
-  --accent-glow: rgba(37, 99, 235, 0.12);
+  --accent-ice: #0f766e;
+  --accent-frost: #14b8a6;
+  --accent-cryo: #1d4ed8;
+  --accent-glow: rgba(13, 148, 136, 0.16);
 
   --accent-amber: #f59e0b;
   --accent-emerald: #10b981;
   --accent-rose: #ef4444;
 
-  --border-subtle: rgba(15, 23, 42, 0.12);
-  --border-active: rgba(37, 99, 235, 0.35);
+  --border-subtle: rgba(15, 23, 42, 0.1);
+  --border-active: rgba(13, 148, 136, 0.34);
 
-  --text-primary: #0f172a;   /* slate-900 */
+  --text-primary: #0f172a;
   --text-secondary: rgba(15, 23, 42, 0.72);
   --text-muted: rgba(15, 23, 42, 0.48);
 
   /* Extra surfaces (used by updated components) */
   --surface-1: #ffffff;
-  --surface-2: #f1f5f9; /* slate-100 */
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 12px 28px rgba(15, 23, 42, 0.10);
+  --surface-2: #f8fafc;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05), 0 10px 22px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 20px 42px rgba(15, 23, 42, 0.12);
 
-  --font-display: "Syne", sans-serif;
-  --font-body: "DM Sans", sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Inter", sans-serif;
 }
 
 html, body, #root { height: 100%; }
 
 body {
   font-family: var(--font-body);
-  font-size: 19px;
-  background: var(--bg-void);
+  font-size: 17px;
+  background: radial-gradient(circle at 12% 0%, #f7fbff 0%, transparent 42%), linear-gradient(180deg, #f2f7fc 0%, var(--bg-void) 60%);
   color: var(--text-primary);
   overflow-x: hidden;
+  line-height: 1.5;
 }
 
 /* Scrollbar */
@@ -111,7 +111,7 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-sm);
-  border-radius: 16px;
+  border-radius: 14px;
 }
 .glass-card:hover {
   border-color: var(--border-active);
@@ -153,6 +153,7 @@ body {
   border-radius: 16px;
   padding: 1px;
   background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(37,99,235,0.04), rgba(37,99,235,0.12));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -189,17 +190,18 @@ body {
 
 /* Button styles */
 .btn-primary {
-  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
   color: #ffffff;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 
-  padding: 10px 20px;       
-  border-radius: 8px;       
+  border: 1px solid transparent;
+  padding: 10px 18px;
+  border-radius: 10px;
   display: inline-flex;      
   align-items: center;
   justify-content: center;
@@ -213,13 +215,13 @@ body {
   transition: transform 0.5s ease;
 }
 .btn-primary:hover::after { transform: translateX(100%); }
-.btn-primary:hover { box-shadow: 0 10px 26px rgba(37,99,235,0.22); transform: translateY(-1px); }
+.btn-primary:hover { box-shadow: 0 12px 28px rgba(13,148,136,0.28); transform: translateY(-1px); }
 
 .btn-ghost {
-  background: transparent;
+  background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.14);
   color: var(--text-primary);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 500;
   transition: all 0.3s ease;
 
@@ -229,7 +231,7 @@ body {
   align-items: center;
   justify-content: center;
 }
-.btn-ghost:hover { background: rgba(37,99,235,0.06); border-color: rgba(37,99,235,0.28); }
+.btn-ghost:hover { background: rgba(13,148,136,0.08); border-color: rgba(13,148,136,0.28); color: var(--accent-ice); }
 
 /* Sidebar */
 .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -243,7 +245,7 @@ body {
 .chamber-card {
   background: var(--surface-1);
   border: 1px solid rgba(15, 23, 42, 0.10);
-  border-radius: 12px;
+  border-radius: 14px;
   transition: all 0.3s ease;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
@@ -274,13 +276,41 @@ body {
   padding: 18px;
   display: grid;
   gap: 10px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
-.modal-content.wide { width: min(100%, 900px); }
+.modal-content.wide {
+  width: min(100%, 900px);
+  max-height: 90vh;
+  overflow-y: auto;
+}
 .modal-content h3, .modal-content h4 { margin-bottom: 8px; }
 .modal-content label { font-size: 0.9rem; color: var(--text-muted); }
 .modal-content input,
-.modal-content select { width: 100%; padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: 8px; background: #fff; }
+.modal-content select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 14px;
+}
 .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+
+input, select, textarea {
+  font-family: var(--font-body);
+}
+
+table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+table td {
+  font-size: 13px;
+}
 
 /* Tooltip */
 .tooltip { position: relative; }

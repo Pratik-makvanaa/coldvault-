@@ -160,6 +160,10 @@ function diffDaysInclusive(startDate, endDate) {
   return Math.max(1, days + 1);
 }
 
+function isActiveBooking(booking) {
+  return booking?.checkoutStatus !== "CHECKED_OUT" && !booking?.actualPickupDate;
+}
+
 // ── PROFESSIONAL BILL PDF GENERATOR ─────────────────────────────────────────
 function generateProfessionalBill(customerName, rows, adminName) {
   import("jspdf").then(({ default: jsPDF }) => {
@@ -410,7 +414,7 @@ function BookingModal({ chamber, onClose, onCreateBooking, onDeleteBooking, onCh
   const [checkoutBookingData, setCheckoutBookingData] = useState(null);
 
   // Only show ACTIVE bookings (not checked out) in this modal
-  const activeBookings = (chamber.bookings || []).filter(b => !b.checkoutStatus || b.checkoutStatus !== "CHECKED_OUT");
+  const activeBookings = (chamber.bookings || []).filter(isActiveBooking);
   const usedSlots = activeBookings.reduce((sum, b) => sum + b.slots, 0);
   const availableSlots = Math.max(0, (chamber.totalSlots || 0) - usedSlots);
   const slotsNum = Math.min(availableSlots || 0, Math.max(1, Number(slots) || 1));
@@ -702,7 +706,7 @@ function AllBookingsPage({ chambers, adminName, onGenerateBill }) {
   const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
   const totalRevenue = filtered.reduce((s, b) => s + (b.totalPrice || 0), 0);
-  const currentCount = filtered.filter(b => !b.checkoutStatus && !b.actualPickupDate).length;
+  const currentCount = filtered.filter(isActiveBooking).length;
   const prevCount = filtered.filter(b => b.checkoutStatus === "CHECKED_OUT" || b.actualPickupDate).length;
 
   return (
@@ -729,13 +733,14 @@ function AllBookingsPage({ chambers, adminName, onGenerateBill }) {
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", background: "rgba(255, 255, 255, 0.96)", border: "1px solid rgb(255, 255, 255)", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ display: "flex", background: "var(--surface-1)", border: "1px solid var(--border-subtle)", borderRadius: 10, overflow: "hidden" }}>
           {[["all","All"],["current","Currently Using"],["previous","Checked Out"]].map(([val, label]) => (
             <button key={val} onClick={() => setFilterStatus(val)} style={{
               padding: "8px 16px", border: "none", cursor: "pointer", fontSize: 12,
-              background: filterStatus === val ? "rgba(255, 255, 255, 0.98)" : "transparent",
+              background: filterStatus === val ? "rgba(77,217,240,0.15)" : "transparent",
               color: filterStatus === val ? "var(--accent-ice)" : "var(--text-muted)",
               fontFamily: "var(--font-display)", fontWeight: filterStatus === val ? 600 : 400,
+              borderRight: "1px solid var(--border-subtle)",
             }}>{label}</button>
           ))}
         </div>
@@ -750,7 +755,7 @@ function AllBookingsPage({ chambers, adminName, onGenerateBill }) {
           {years.map(y => <option key={y} value={y} style={{ background: "#ffffff" }}>{y}</option>)}
         </select>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgb(255, 255, 255)04)", border: "1px solid rgba(77,217,240,0.15)", borderRadius: 10, padding: "8px 14px", flex: "1 1 200px", minWidth: 160 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255, 255, 255, 0.94)", border: "1px solid var(--border-subtle)", borderRadius: 10, padding: "8px 14px", flex: "1 1 200px", minWidth: 160 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input placeholder="Search customer, farmer ID, chamber…" value={search} onChange={e => setSearch(e.target.value)} style={{ background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontSize: 13, width: "100%", fontFamily: "var(--font-body)" }} />
         </div>
@@ -848,11 +853,11 @@ export function Dashboard({ admin, onBack }) {
   const [selectedChamberId, setSelectedChamberId] = useState(null);
   const [deleteChamberId, setDeleteChamberId] = useState(null);
 
-  const mainLeft = collapsed ? 68 : 240;
+  const mainLeft = collapsed ? 84 : 264;
 
   const selectedChamber = useMemo(() => chambers.find((c) => c.id === selectedChamberId) || null, [chambers, selectedChamberId]);
   const totalSlots = useMemo(() => chambers.reduce((sum, ch) => sum + (ch.totalSlots || 0), 0), [chambers]);
-  const bookedSlots = useMemo(() => chambers.reduce((sum, ch) => sum + ((ch.bookings || []).filter(b => !b.checkoutStatus && !b.actualPickupDate).reduce((s, b) => s + b.slots, 0)), 0), [chambers]);
+  const bookedSlots = useMemo(() => chambers.reduce((sum, ch) => sum + ((ch.bookings || []).filter(isActiveBooking).reduce((s, b) => s + b.slots, 0)), 0), [chambers]);
   const availableSlots = useMemo(() => Math.max(0, totalSlots - bookedSlots), [totalSlots, bookedSlots]);
   const avgCap = useMemo(() => (totalSlots ? Math.round((bookedSlots / totalSlots) * 100) : 0), [totalSlots, bookedSlots]);
   const totalRevenue = useMemo(() => chambers.reduce((sum, ch) => sum + ((ch.bookings || []).reduce((s, b) => s + (b.totalPrice || 0), 0)), 0), [chambers]);
@@ -965,8 +970,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
           <div style={{ padding: "32px 36px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div>
-                <h1 style={{ fontFamily: "var(--font-display)", fontSize: 31, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>Reports</h1>
-                <p style={{ fontSize: 18, color: "var(--text-muted)", marginTop: 6 }}>Download bookings report by customer and billing</p>
+                <h1 style={{ fontFamily: "var(--font-display)", fontSize: 27, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>Reports</h1>
+                <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 6 }}>Download bookings report by customer and billing</p>
               </div>
               <button className="btn-primary" onClick={downloadReport} style={{ padding: "10px 20px", borderRadius: 10 }}>Download CSV</button>
             </div>
@@ -1022,7 +1027,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
     const now2 = Date.now();
     const allAlerts = chambers.flatMap((c) =>
       (c.bookings || [])
-        .filter(b => !b.checkoutStatus && !b.actualPickupDate) // Only active bookings
+        .filter(isActiveBooking) // Only active bookings
         .map((b, idx) => {
           const end = b.endDate ? new Date(b.endDate).getTime() : new Date(b.createdAt || new Date()).getTime() + (b.days || 0) * 864e5;
           const remainingDays = Math.max(0, Math.ceil((end - now2) / 864e5));
@@ -1040,7 +1045,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
         <main style={{ marginLeft: mainLeft, paddingTop: 68, transition: "margin-left 0.3s", minHeight: "100vh" }}>
           <div style={{ padding: "32px 36px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 31, fontWeight: 700, color: "var(--text-primary)" }}>Alerts</h1>
+              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 27, fontWeight: 700, color: "var(--text-primary)" }}>Alerts</h1>
               {dismissedAlerts.size > 0 && (
                 <button onClick={() => setDismissedAlerts(new Set())} className="btn-ghost" style={{ fontSize: 13, padding: "8px 16px", borderRadius: 8 }}>
                   Restore {dismissedAlerts.size} dismissed
@@ -1049,7 +1054,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
             </div>
             <div className="glass-card" style={{ padding: 16 }}>
               {visibleAlerts.length === 0 ? (
-                <p style={{ fontSize: 18, color: "var(--text-muted)", padding: "20px 0" }}>No active alerts</p>
+                <p style={{ fontSize: 14, color: "var(--text-muted)", padding: "20px 0" }}>No active alerts</p>
               ) : (
                 <div style={{ display: "grid", gap: 10 }}>
                   {visibleAlerts.map((a) => {
@@ -1094,7 +1099,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
         <Topbar collapsed={collapsed} onBack={onBack} />
         <main style={{ marginLeft: mainLeft, paddingTop: 68, minHeight: "100vh" }}>
           <div style={{ padding: "32px 36px" }}>
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 31, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>Customers</h1>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 27, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>Customers</h1>
             <p style={{ fontSize: 15, color: "var(--text-muted)", marginBottom: 24 }}>{customers.length} customers — auto-added when a booking is created</p>
             <div className="glass-card" style={{ padding: 20 }}>
               {customers.length === 0 ? (
@@ -1138,8 +1143,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
           <div style={{ padding: "32px 36px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>
-                <h1 style={{ fontFamily: "var(--font-display)", fontSize: 31, fontWeight: 700, color: "var(--text-primary)" }}>Manage Chambers</h1>
-                <p style={{ fontSize: 18, color: "var(--text-muted)" }}>Edit total slots, price per slot/day, and slot size</p>
+                <h1 style={{ fontFamily: "var(--font-display)", fontSize: 27, fontWeight: 700, color: "var(--text-primary)" }}>Manage Chambers</h1>
+                <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Edit total slots, price per slot/day, and slot size</p>
               </div>
               <button className="btn-primary" style={{ padding: "10px 20px", borderRadius: 10 }} onClick={() => setShowAddModal(true)}>+ Add Chamber</button>
             </div>
@@ -1150,7 +1155,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
                 </thead>
                 <tbody>
                   {chambers.map((c) => {
-                    const activeBookings2 = (c.bookings || []).filter(b => !b.checkoutStatus && !b.actualPickupDate);
+                    const activeBookings2 = (c.bookings || []).filter(isActiveBooking);
                     const booked = activeBookings2.reduce((s, b) => s + b.slots, 0);
                     const available = Math.max(0, c.totalSlots - booked);
                     const isFull = available <= 0;
@@ -1190,7 +1195,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
         {showAddModal && <AddChamberModal onClose={() => setShowAddModal(false)} onSubmit={handleAddChamber} adminPassword={admin?.password} />}
         {deleteChamberId && <DeleteChamberModal chamberId={deleteChamberId} onConfirm={() => handleDeleteChamber(deleteChamberId)} onClose={() => setDeleteChamberId(null)} adminPassword={admin?.password} />}
         {selectedChamber && (
-          <BookingModal chamber={selectedChamber} onClose={handleCloseChamberDetail} onCreateBooking={handleCreateBooking} onDeleteBooking={handleDeleteBooking} onCheckoutBooking={handleCheckoutBooking} adminPassword={admin?.password} adminName={admin?.name} />
+          <BookingModal key={selectedChamber.id + (selectedChamber.bookings?.map(b => b.id + (b.checkoutStatus || '')).join(',') ?? '')} chamber={selectedChamber} onClose={handleCloseChamberDetail} onCreateBooking={handleCreateBooking} onDeleteBooking={handleDeleteBooking} onCheckoutBooking={handleCheckoutBooking} adminPassword={admin?.password} adminName={admin?.name} />
         )}
       </div>
     );
@@ -1221,8 +1226,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
             <div style={{ marginBottom: 16, background: "rgb(255, 255, 255)", border: "1px solid rgb(255, 255, 255)", color: "#b45309", borderRadius: 10, padding: "10px 14px", fontSize: 14 }}>{fetchError}</div>
           )}
           <div className="animate-fadeInUp" style={{ marginBottom: 28 }}>
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 31, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>Storage & Billing Dashboard</h1>
-            <p style={{ fontSize: 19, color: "var(--text-muted)", marginTop: 6 }}>Manage bookings by slots · Pricing by days · Auto billing</p>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 34, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.1 }}>Storage & Billing Dashboard</h1>
+            <p style={{ fontSize: 17, color: "var(--text-muted)", marginTop: 6 }}>Manage bookings by slots · Pricing by days · Auto billing</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
             {metrics.map((m, i) => (
@@ -1230,12 +1235,12 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
                 <div className="metric-card" style={{ background: "var(--surface-1)", padding: "22px 24px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 16, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 8, fontFamily: "var(--font-display)" }}>{m.label.toUpperCase()}</div>
+                      <div style={{ fontSize: 14, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 8, fontFamily: "var(--font-display)" }}>{m.label.toUpperCase()}</div>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
                         <span style={{ fontSize: 35, fontFamily: "var(--font-display)", fontWeight: 700, color: m.color, lineHeight: 1 }}>{m.value}</span>
                         {m.unit && <span style={{ fontSize: 19, color: m.color, opacity: 0.7 }}>{m.unit}</span>}
                       </div>
-                      {m.sub && <div style={{ fontSize: 16, color: "var(--text-muted)", marginTop: 6 }}>{m.sub}</div>}
+                      {m.sub && <div style={{ fontSize: 15, color: "var(--text-muted)", marginTop: 6 }}>{m.sub}</div>}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
                       <div style={{ width: 40, height: 40, borderRadius: 10, background: `${m.color}15`, border: `1px solid ${m.color}30`, display: "flex", alignItems: "center", justifyContent: "center", color: m.color }}>
@@ -1252,8 +1257,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24, animation: "fadeInUp 0.7s ease 0.5s both" }}>
 
   {/* Capacity Donut Chart */}
-  <div className="glass-card" style={{ padding: "20px 24px" }}>
-    <div style={{ fontSize: 12, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 14 }}>CAPACITY OVERVIEW</div>
+  <div className="glass-card" style={{ padding: "22px 24px", background: "linear-gradient(145deg, rgba(15,118,110,0.08), rgba(255,255,255,0.94))" }}>
+    <div style={{ fontSize: 14, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 14 }}>CAPACITY OVERVIEW</div>
     <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
       <svg width="80" height="80" viewBox="0 0 80 80">
         {(() => {
@@ -1273,7 +1278,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
                 transform="rotate(-90 40 40)"
                 style={{ transition: "stroke-dasharray 0.8s ease" }}
               />
-              <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle" fill="var(--text-primary)" fontSize="13" fontWeight="700">
+              <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle" fill="var(--text-primary)" fontSize="16" fontWeight="700">
                 {Math.round(pct * 100)}%
               </text>
             </>
@@ -1282,16 +1287,17 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
       </svg>
       <div style={{ flex: 1 }}>
         {chambers.map(c => {
-          const booked = (c.bookings || []).filter(b => !b.checkoutStatus || b.checkoutStatus === "ACTIVE").reduce((s,b) => s + b.slots, 0);
-          const pct = c.totalSlots > 0 ? Math.round(booked / c.totalSlots * 100) : 0;
+          const booked = (c.bookings || []).filter(isActiveBooking).reduce((s,b) => s + b.slots, 0);
+          const pct = c.totalSlots > 0 ? Math.round((booked / c.totalSlots) * 100) : 0;
+          const clampedPct = Math.min(100, Math.max(0, pct));
           return (
             <div key={c.id} style={{ marginBottom: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 5 }}>
                 <span style={{ color: "var(--text-secondary)" }}>{c.name}</span>
-                <span style={{ color: pct >= 100 ? "#f43f5e" : "#10b981" }}>{pct}%</span>
+                <span style={{ color: pct >= 100 ? "#f43f5e" : "#10b981" }}>{clampedPct}%</span>
               </div>
-              <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${pct}%`, background: pct >= 100 ? "#f43f5e" : pct > 70 ? "#f59e0b" : "#10b981", borderRadius: 2, transition: "width 0.8s ease" }} />
+              <div style={{ height: 7, background: "rgba(15,23,42,0.1)", borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${clampedPct}%`, background: pct >= 100 ? "#f43f5e" : pct > 70 ? "#f59e0b" : "#10b981", borderRadius: 2, transition: "width 0.8s ease" }} />
               </div>
             </div>
           );
@@ -1301,8 +1307,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
   </div>
 
   {/* Revenue Bar Chart */}
-  <div className="glass-card" style={{ padding: "20px 24px" }}>
-    <div style={{ fontSize: 12, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 14 }}>REVENUE BY CHAMBER</div>
+  <div className="glass-card" style={{ padding: "22px 24px", background: "linear-gradient(145deg, rgba(29,78,216,0.08), rgba(255,255,255,0.94))" }}>
+    <div style={{ fontSize: 14, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 14 }}>REVENUE BY CHAMBER</div>
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {chambers.length === 0 && <div style={{ fontSize: 13, color: "var(--text-muted)" }}>No chambers yet.</div>}
       {chambers.map(c => {
@@ -1311,11 +1317,11 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
         const pct = Math.round((rev / maxRev) * 100);
         return (
           <div key={c.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 5 }}>
               <span style={{ color: "var(--text-secondary)" }}>{c.name}</span>
               <span style={{ color: "#f59e0b", fontWeight: 600 }}>Rs.{rev.toLocaleString("en-IN")}</span>
             </div>
-            <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ height: 8, background: "rgba(15,23,42,0.1)", borderRadius: 4, overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${pct}%`, background: "linear-gradient(90deg, #f59e0b, #fbbf24)", borderRadius: 3, transition: "width 0.8s ease" }} />
             </div>
           </div>
@@ -1325,11 +1331,11 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
   </div>
 
   {/* Booking Stats */}
-  <div className="glass-card" style={{ padding: "20px 24px" }}>
-    <div style={{ fontSize: 12, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 14 }}>BOOKING STATS</div>
+  <div className="glass-card" style={{ padding: "22px 24px", background: "linear-gradient(145deg, rgba(20,184,166,0.08), rgba(255,255,255,0.94))" }}>
+    <div style={{ fontSize: 14, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 14 }}>BOOKING STATS</div>
     {(() => {
       const allBookings = chambers.flatMap(c => c.bookings || []);
-      const active = allBookings.filter(b => !b.checkoutStatus || b.checkoutStatus === "ACTIVE").length;
+      const active = allBookings.filter(isActiveBooking).length;
       const checkedOut = allBookings.filter(b => b.checkoutStatus === "CHECKED_OUT").length;
       const total = allBookings.length;
       const totalCustomers = [...new Set(allBookings.map(b => b.customer))].length;
@@ -1341,9 +1347,9 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
             { label: "Total Bookings", value: total, color: "#4dd9f0" },
             { label: "Unique Customers", value: totalCustomers, color: "#f59e0b" },
           ].map(s => (
-            <div key={s.label} style={{ background: "rgb(255, 255, 255)", border: "1px solid rgb(255, 255, 255)", borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>{s.label.toUpperCase()}</div>
-              <div style={{ fontSize: 22, fontFamily: "var(--font-display)", fontWeight: 700, color: s.color }}>{s.value}</div>
+            <div key={s.label} style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid var(--border-subtle)", borderRadius: 12, padding: "14px 14px" }}>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>{s.label.toUpperCase()}</div>
+              <div style={{ fontSize: 26, fontFamily: "var(--font-display)", fontWeight: 700, color: s.color }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -1354,8 +1360,8 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
 </div>
 
 {/* ── Monthly Turnover Bar Chart ────────────────────────── */}
-<div className="glass-card" style={{ padding: "20px 24px", marginBottom: 24, animation: "fadeInUp 0.7s ease 0.6s both" }}>
-  <div style={{ fontSize: 12, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 16 }}>MONTHLY TURNOVER (Rs.)</div>
+<div className="glass-card" style={{ padding: "22px 24px", marginBottom: 24, animation: "fadeInUp 0.7s ease 0.6s both", background: "linear-gradient(145deg, rgba(245,158,11,0.08), rgba(255,255,255,0.94))" }}>
+  <div style={{ fontSize: 14, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 16 }}>MONTHLY TURNOVER (Rs.)</div>
   {(() => {
     const allBookings = chambers.flatMap(c => c.bookings || []);
     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -1370,7 +1376,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
       return { month: m, rev };
     });
     const maxRev = Math.max(...monthlyData.map(d => d.rev), 1);
-    const barH = 80;
+    const barH = 110;
     return (
       <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: barH + 30 }}>
         {monthlyData.map(({ month, rev }) => {
@@ -1379,7 +1385,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
           return (
             <div key={month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               {rev > 0 && (
-                <div style={{ fontSize: 9, color: "#f59e0b", fontWeight: 600 }}>
+                <div style={{ fontSize: 11, color: "#b45309", fontWeight: 600 }}>
                   {rev >= 1000 ? `${(rev/1000).toFixed(1)}k` : rev}
                 </div>
               )}
@@ -1392,7 +1398,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
                 transition: "height 0.8s ease",
                 minHeight: 3,
               }} />
-              <div style={{ fontSize: 9, color: isCurrentMonth ? "var(--accent-ice)" : "var(--text-muted)", fontWeight: isCurrentMonth ? 700 : 400 }}>{month}</div>
+              <div style={{ fontSize: 11, color: isCurrentMonth ? "var(--accent-ice)" : "var(--text-muted)", fontWeight: isCurrentMonth ? 700 : 500 }}>{month}</div>
             </div>
           );
         })}
@@ -1409,7 +1415,10 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
       <p style={{ fontSize: 17, color: "var(--text-muted)", marginTop: 2 }}>{chambers.length} chambers · pricing by slot/day</p>
     </div>
   </div>
-  <ChamberGrid chambers={chambers} onSelectChamber={handleSelectChamber} />
+  <ChamberGrid
+    chambers={chambers}
+    onSelectChamber={handleSelectChamber}
+  />
 </div>
         </div>
       </main>
@@ -1417,7 +1426,7 @@ const handleDeleteBooking = async (chamberId, bookingId) => {
       {deleteChamberId && <DeleteChamberModal chamberId={deleteChamberId} onConfirm={() => handleDeleteChamber(deleteChamberId)} onClose={() => setDeleteChamberId(null)} adminPassword={admin?.password} />}
       {selectedChamber && (
   <BookingModal
-    key={selectedChamber.id + (selectedChamber.bookings?.length ?? 0)}
+    key={selectedChamber.id + (selectedChamber.bookings?.map(b => b.id + (b.checkoutStatus || '')).join(',') ?? '')}
     chamber={selectedChamber}
     onClose={handleCloseChamberDetail}
     onCreateBooking={handleCreateBooking}

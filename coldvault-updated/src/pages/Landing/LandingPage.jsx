@@ -102,7 +102,7 @@ export function LandingPage({ onEnterDashboard }) {
           left: 0,
           right: 0,
           zIndex: 100,
-          padding: "20px 60px",
+          padding: "16px 44px",
           background: "rgba(255,255,255,0.92)",
           borderBottom: "1px solid rgba(15,23,42,0.10)",
           display: "flex",
@@ -136,7 +136,7 @@ export function LandingPage({ onEnterDashboard }) {
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
          
           <button
             className="btn-primary"
@@ -159,12 +159,12 @@ export function LandingPage({ onEnterDashboard }) {
         style={{
           position: "relative",
           zIndex: 1,
-          padding: "180px 60px 100px",
-          maxWidth: 1300,
+          padding: "140px 44px 70px",
+          maxWidth: 1200,
           margin: "0 auto",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 56 }}>
           {/* Left content */}
           <div style={{ flex: 1 }}>
             <div
@@ -201,9 +201,9 @@ export function LandingPage({ onEnterDashboard }) {
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 800,
-                fontSize: 71,
+                fontSize: 56,
                 lineHeight: 1.05,
-                marginBottom: 24,
+                marginBottom: 20,
               }}
             >
               <span style={{ color: "var(--text-primary)" }}>Cold </span>
@@ -214,12 +214,12 @@ export function LandingPage({ onEnterDashboard }) {
             <p
               className="animate-fadeInUp stagger-3"
               style={{
-                fontSize: 21,
+                fontSize: 17,
                 color: "var(--text-secondary)",
-                lineHeight: 1.7,
+                lineHeight: 1.6,
                 maxWidth: 520,
-                marginBottom: 48,
-                fontWeight: 300,
+                marginBottom: 34,
+                fontWeight: 400,
               }}
             >
               Our mission is clear: Help cold storage operators manage chambers, inventory, and customer storage orders with capacity-first insights, automated billing, and fast reporting.
@@ -232,11 +232,11 @@ export function LandingPage({ onEnterDashboard }) {
                 className="btn-primary"
                 onClick={onEnterDashboard}
                 style={{
-                  padding: "16px 36px",
+                  padding: "13px 24px",
                   borderRadius: 12,
                   border: "none",
                   cursor: "pointer",
-                  fontSize: 18,
+                  fontSize: 16,
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
@@ -267,9 +267,9 @@ export function LandingPage({ onEnterDashboard }) {
               className="animate-fadeInUp stagger-5"
               style={{
                 display: "flex",
-                gap: 40,
-                marginTop: 60,
-                paddingTop: 40,
+                gap: 28,
+                marginTop: 36,
+                paddingTop: 28,
                 borderTop: "1px solid var(--border-subtle)",
               }}
             >
@@ -278,7 +278,7 @@ export function LandingPage({ onEnterDashboard }) {
                   <div
                     style={{
                       fontFamily: "var(--font-display)",
-                      fontSize: 31,
+                      fontSize: 24,
                       fontWeight: 700,
                       color: "var(--accent-ice)",
                     }}
@@ -308,15 +308,15 @@ export function LandingPage({ onEnterDashboard }) {
       </section>
 
       {/* Features */}
-      <section style={{ position: "relative", zIndex: 1, padding: "80px 60px", maxWidth: 1300, margin: "0 auto" }}>
+      <section style={{ position: "relative", zIndex: 1, padding: "54px 44px", maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 64 }}>
           <h2
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: 45,
+              fontSize: 34,
               fontWeight: 700,
               color: "var(--text-primary)",
-              marginBottom: 16,
+              marginBottom: 10,
             }}
           >
            ColdVault <span style={{ color: "var(--accent-ice)" }}>Features</span>
@@ -326,20 +326,20 @@ export function LandingPage({ onEnterDashboard }) {
           </p> */}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
           {features.map((f, i) => (
             <div
               key={f.title}
               className="glass-card"
               style={{
-                padding: 28,
+                padding: 22,
                 cursor: "default",
                 transition: "all 0.3s ease",
                 animation: `fadeInUp 0.6s ease ${0.1 * i}s both`,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-6px)";
-                e.currentTarget.style.boxShadow = "0 24px 48px rgba(0,0,0,0.4), 0 0 40px rgba(77,217,240,0.08)";
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow = "var(--shadow-md)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
@@ -366,14 +366,14 @@ export function LandingPage({ onEnterDashboard }) {
                 style={{
                   fontFamily: "var(--font-display)",
                   fontWeight: 600,
-                  fontSize: 20,
+                  fontSize: 18,
                   marginBottom: 10,
                   color: "var(--text-primary)",
                 }}
               >
                 {f.title}
               </h3>
-              <p style={{ fontSize: 17, color: "var(--text-secondary)", lineHeight: 1.65 }}>{f.desc}</p>
+              <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.6 }}>{f.desc}</p>
             </div>
           ))}
         </div>
@@ -381,13 +381,13 @@ export function LandingPage({ onEnterDashboard }) {
 
 
       {/* Contact Us Section */}
-      <section style={{ position: "relative", zIndex: 1, padding: "0 60px 80px", maxWidth: 1300, margin: "0 auto" }}>
+      <section style={{ position: "relative", zIndex: 1, padding: "0 44px 64px", maxWidth: 1200, margin: "0 auto" }}>
         <div
           style={{
             background: "linear-gradient(135deg, rgba(37,99,235,0.08), rgba(96,165,250,0.03))",
             border: "1px solid var(--border-subtle)",
-            borderRadius: 24,
-            padding: "56px 80px",
+            borderRadius: 20,
+            padding: "40px 48px",
             backdropFilter: "blur(20px)",
             position: "relative",
             overflow: "hidden",
@@ -406,15 +406,15 @@ export function LandingPage({ onEnterDashboard }) {
               <div style={{ fontSize: 12, letterSpacing: "0.14em", color: "var(--accent-ice)", fontWeight: 700, marginBottom: 10, textTransform: "uppercase" }}>
                 Contact Us
               </div>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10, lineHeight: 1.2 }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8, lineHeight: 1.2 }}>
                 We're here to help
               </h2>
-              <p style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 380, lineHeight: 1.65 }}>
+              <p style={{ fontSize: 15, color: "var(--text-secondary)", maxWidth: 380, lineHeight: 1.6 }}>
                 Reach out to our team for support, onboarding, or any queries about your cold storage operations.
               </p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, minWidth: 340 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, minWidth: 340 }}>
               {[
                 { name: "Sales & Onboarding", number: "9301080126" },
                 { name: "Technical Support",  number: "7247637104" },

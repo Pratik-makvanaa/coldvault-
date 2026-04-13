@@ -15,46 +15,27 @@ export function Topbar({ collapsed, onBack }) {
         height: 68,
         position: "fixed",
         top: 0,
-        left: collapsed ? 68 : 240,
+        left: collapsed ? 84 : 264,
         right: 0,
         zIndex: 40,
         background: "rgba(255,255,255,0.92)",
         borderBottom: "1px solid rgba(15, 23, 42, 0.10)",
         display: "flex",
         alignItems: "center",
-        padding: "0 32px",
+        padding: "0 28px",
         transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
-      {/* Left */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 16 }}>
-        <div
-          style={{
-            background: "var(--surface-2)",
-            border: "1px solid rgba(15, 23, 42, 0.10)",
-            borderRadius: 10,
-            padding: "8px 14px",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            color: "var(--text-secondary)",
-            fontSize: 19,
-          }}
-        >
-          <Icons.search />
-          <span style={{ opacity: 0.5 }}>Search chambers, customers…</span>
-          <span style={{ marginLeft: 16, fontSize: 16, opacity: 0.3 }}>⌘K</span>
-        </div>
-      </div>
+      <div style={{ flex: 1 }} />
 
       {/* Right */}
-      <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         {/* Live clock */}
         <div style={{ textAlign: "right" }}>
           <div
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: 20,
+              fontSize: 19,
               fontWeight: 600,
               color: "var(--accent-ice)",
               letterSpacing: "0.05em",
@@ -62,7 +43,7 @@ export function Topbar({ collapsed, onBack }) {
           >
             {time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
           </div>
-          <div style={{ fontSize: 16, color: "var(--text-muted)" }}>
+          <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
             {time.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
           </div>
         </div>
@@ -101,10 +82,10 @@ export function Topbar({ collapsed, onBack }) {
         {/* Avatar */}
         <div
           style={{
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             borderRadius: 10,
-            background: "linear-gradient(135deg, #2563eb, #60a5fa)",
+            background: "linear-gradient(135deg, #0f766e, #14b8a6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -120,7 +101,7 @@ export function Topbar({ collapsed, onBack }) {
         </div>
 
         {/* Back to landing */}
-        <button onClick={onBack} className="btn-ghost" style={{ padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontSize: 17 }}>
+        <button onClick={onBack} className="btn-ghost" style={{ padding: "8px 14px", borderRadius: 10, cursor: "pointer", fontSize: 15 }}>
           ← Log out
         </button>
       </div>
