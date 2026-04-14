@@ -13,8 +13,8 @@ export default function App() {
   const handleLogin = async (username, password) => {
     try {
       const res = await login({ username, password });
-      // FIX 3: res.data now includes password for per-admin modal verification
-      setCurrentAdmin(res.data);
+      // Keep a reliable password in session even if backend omits it.
+      setCurrentAdmin({ ...res.data, password: res.data?.password ?? password });
       setLoginError("");
       setView("dashboard");
     } catch (err) {

@@ -24,7 +24,10 @@ function PasswordModal({ title, onConfirm, onClose, adminPassword }) {
   const [show, setShow] = useState(false);
 
   const verify = () => {
-    if (pw === adminPassword) { setErr(""); onConfirm(); }
+    const entered = pw.trim();
+    const expected = (adminPassword ?? "").toString().trim();
+    if (!expected) { setErr("Session password missing. Please login again."); return; }
+    if (entered === expected) { setErr(""); onConfirm(); }
     else setErr("Incorrect password. Please try again.");
   };
 
